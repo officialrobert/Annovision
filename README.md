@@ -1,8 +1,8 @@
 # Annovision (/ˌinəˈvāSH(ə)n/)
 
-![](docs/logo.png)
+<img src="https://github.com/officialrobert/Annovision/blob/master/docs/logo.png" width="210" height="150"/>
 
-An open-source desktop application for annotating/labelling data useful in vision AI projects. This tool includes project management and primarily supports `Classification`, `Segmentation` and `Object-detection` tasks. The current repository sits all required source-code to set the tool up and running. It'll also include link to latest build(s), roadmap(s), primary goal(s) and feature(s) for this open sourced application.
+An open-source desktop application for annotating/labelling data for vision AI. This tool includes project management and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running. It'll also include link to latest build(s), primary goal(s) and feature(s) for this open sourced application.
 
 ## Our platform
 
@@ -17,14 +17,14 @@ Clone the repository and install needed modules as provided under package.json. 
 ## Primary source stack
 
 - **ElectronJS** - For web-based UI
-- **Embeddable** python - For core functionality
+- **Embeddable python** - For core functionality
 - **ReactJS** - Web UI framework
 - **SQLite** - For low latency and overhead in-app data manipulation
 
 ## Documentation
 
 - <a href="./docs/MECHANICS.md"><code><b>Mechanics and flow</b></code></a>
-- <a href="./docs/PROJECT.md"><code><b>Projects</b></code></a>
+- <a href="./docs/PROJECT.md"><code><b>Project Management</b></code></a>
 - <a href="./docs/CLASSIFICATION.md"><code><b>Classification task</b></code></a>
 
 ## Collaboration and contributing
