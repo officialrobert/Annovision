@@ -1,0 +1,9 @@
+.mixer {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  & > canvas {
+    position: relative;
+  }
+}

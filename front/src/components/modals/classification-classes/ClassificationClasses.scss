@@ -1,0 +1,74 @@
+@import '../../../theme/commons.scss';
+
+.classificationcx {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & > div:nth-child(1) {
+    position: relative;
+    height: 190px;
+    width: 350px;
+    background: white;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+
+    .empty {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+
+      & > p {
+        text-align: center;
+        padding: 5px;
+        font-size: 12px;
+        font-family: 'Spartan-Bold';
+      }
+    }
+
+    & > ul {
+      position: relative;
+      width: 100%;
+      height: 90%;
+      overflow-y: scroll;
+      list-style-type: none;
+
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #888;
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      & > li {
+        position: relative;
+        width: calc(100% - 50px);
+        padding: 6px 25px;
+
+        .cb {
+          position: relative;
+          height: 15px;
+          width: 15px;
+          margin-right: 10px;
+        }
+
+        & > p {
+          font-size: 12px;
+          text-align: left;
+        }
+      }
+    }
+  }
+}

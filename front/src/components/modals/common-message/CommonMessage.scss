@@ -1,0 +1,47 @@
+@import '../../../theme/commons.scss';
+
+.commonmsg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & > div:nth-child(1) {
+    position: relative;
+    width: 410px;
+    padding: 40px 0px;
+    padding-top: 15px;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    background: white;
+    overflow: hidden;
+
+    .message {
+      position: relative;
+      font-size: 12px;
+      text-align: left;
+      width: 90%;
+      padding-bottom: 10px;
+    }
+
+    .actions {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      height: 30px;
+
+      .close {
+        position: relative;
+        height: 30px;
+        width: 80px;
+        background: $app_purple;
+
+        & > p {
+          font-family: 'Spartan-Bold';
+        }
+      }
+    }
+  }
+}

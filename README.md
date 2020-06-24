@@ -2,7 +2,7 @@
 
 <img src="https://github.com/officialrobert/Annovision/blob/master/docs/logo.png" width="210" height="150"/>
 
-An open-source desktop application for annotating/labelling data for vision AI. This tool includes project management and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running. It'll also include link to latest build(s), primary goal(s) and feature(s) for this open sourced application.
+An open-source desktop application for annotating/labelling data for vision AI. This tool includes project management and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running.
 
 ## Our platform
 
@@ -14,7 +14,7 @@ This software haven't been tested on other distributed OS, except for `Windows 1
 
 Clone the repository and install needed modules as provided under package.json. I would highly recommend using `yarn` package manager.
 
-## Primary source stack
+## Stack
 
 - **ElectronJS** - For web-based UI
 - **Embeddable python** - For core functionality
@@ -26,6 +26,7 @@ Clone the repository and install needed modules as provided under package.json. 
 - <a href="./docs/MECHANICS.md"><code><b>Mechanics and flow</b></code></a>
 - <a href="./docs/PROJECT.md"><code><b>Project Management</b></code></a>
 - <a href="./docs/CLASSIFICATION.md"><code><b>Classification task</b></code></a>
+- <a href="./docs/PLANS.md"><code><b>Objective and features</b></code></a>
 
 ## Collaboration and contributing
 

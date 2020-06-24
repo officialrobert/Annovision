@@ -1,0 +1,48 @@
+@import '../../theme/commons.scss';
+
+@keyframes loader {
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.apploader {
+  position: relative;
+  height: 100%;
+  width: 100%;
+
+  & > ul:nth-child(1) {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    list-style-type: none;
+
+    & > li {
+      height: 90%;
+      width: 25%;
+      background: $app_purple;
+      border-radius: 10%;
+      margin: 0px 4%;
+    }
+
+    & > li:nth-child(1) {
+      animation: loader 1s ease 0s infinite;
+    }
+
+    & > li:nth-child(2) {
+      animation: loader 1s ease 0.2s infinite;
+    }
+
+    & > li:nth-child(3) {
+      animation: loader 1s ease 0.4s infinite;
+    }
+  }
+}

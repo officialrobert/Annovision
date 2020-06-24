@@ -1,0 +1,32 @@
+/* Open source fonts */
+
+/* Spartan */
+@font-face {
+  font-family: 'Spartan-Bold';
+  src: local('Spartan-Bold'),
+    url(fonts/spartan/Spartan-Bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Spartan-ExtraBold';
+  src: local('Spartan-ExtraBold'),
+    url(fonts/spartan/Spartan-ExtraBold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Spartan-Medium';
+  src: local('Spartan-Medium'),
+    url(fonts/spartan/Spartan-Medium.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Spartan-Regular';
+  src: local('Spartan-Regular'),
+    url(fonts/spartan/Spartan-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Spartan-SemiBold';
+  src: local('Spartan-SemiBold'),
+    url(fonts/spartan/Spartan-SemiBold.ttf) format('truetype');
+}

@@ -1,0 +1,20 @@
+@import '../../theme/commons.scss';
+
+.radioselect {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  border: 3px solid $app_purple;
+  cursor: pointer;
+}
+
+.radioactive {
+  &::after {
+    position: absolute;
+    content: '';
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    background: $app_black;
+  }
+}

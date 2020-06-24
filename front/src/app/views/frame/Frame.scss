@@ -1,0 +1,16 @@
+@import '../../../theme/commons.scss';
+
+.frame {
+  position: absolute;
+  padding-top: 10px;
+  height: calc(100% - 70px);
+
+  .mixerwrap {
+    position: relative;
+
+    & > div:nth-child(1) {
+      position: relative;
+      background: $app_lightgray;
+    }
+  }
+}

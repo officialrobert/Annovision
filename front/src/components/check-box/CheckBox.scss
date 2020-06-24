@@ -1,0 +1,24 @@
+@import '../../theme/commons.scss';
+
+.checkbox {
+  position: relative;
+  border: 3px solid $app_black;
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+
+  .activate {
+    background: $app_purple;
+  }
+
+  .notselected {
+    background: transparent;
+  }
+
+  & > div:nth-child(1) {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+}

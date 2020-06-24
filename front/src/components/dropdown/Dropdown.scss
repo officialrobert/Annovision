@@ -1,0 +1,72 @@
+@import '../../theme/commons.scss';
+
+.dropdown {
+  align-items: flex-end;
+
+  .expand {
+    margin-top: 8px;
+    border-radius: 5px;
+    position: relative;
+    z-index: $front;
+    -webkit-box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+    border: 1px solid $app_purple;
+    background: white;
+
+    & > ul {
+      height: 95%;
+      width: 90%;
+      position: relative;
+      list-style-type: none;
+
+      & > li {
+        padding: 2px 5px;
+        cursor: pointer;
+
+        & > p {
+          font-size: 13px;
+          color: $app_black;
+
+          &:hover {
+            color: $app_purple;
+          }
+        }
+      }
+    }
+
+    .arrow {
+      position: absolute;
+      top: -9.2px;
+      width: 0;
+      height: 0;
+      right: 28px;
+      background: white;
+
+      &::after {
+        position: absolute;
+        display: block;
+        content: '';
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 9px solid white;
+        left: 0;
+        top: 1px;
+      }
+
+      &::before {
+        position: absolute;
+        display: block;
+        content: '';
+        width: 0;
+        height: 0;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+        border-bottom: 9px solid $app_purple;
+        left: -1px;
+        top: 0;
+      }
+    }
+  }
+}

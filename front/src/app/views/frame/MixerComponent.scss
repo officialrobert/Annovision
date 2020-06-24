@@ -1,0 +1,33 @@
+@import '../../../theme/commons.scss';
+
+.mixercomp {
+  position: relative;
+
+  .compcover {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    display: block;
+  }
+
+  .nofile {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+
+    .msg {
+      position: relative;
+      padding: 10px;
+
+      & > p {
+        font-size: 13px;
+        text-align: center;
+        font-family: 'Spartan-Bold';
+      }
+    }
+  }
+}

@@ -1,0 +1,79 @@
+@import '../../../theme/commons.scss';
+
+.createproject {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & > div:nth-child(1) {
+    position: relative;
+    height: 170px;
+    width: 400px;
+    -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    background: white;
+    border-radius: 6px;
+
+    .tip {
+      position: relative;
+      width: calc(100% - 30px);
+      padding: 0px 15px;
+      margin-top: 15px;
+
+      & > p {
+        text-align: left;
+        font-size: 12px;
+      }
+    }
+
+    .input {
+      position: relative;
+      height: 40px;
+      width: 95%;
+      margin-top: 10px;
+    }
+
+    .status {
+      position: relative;
+      width: calc(100% - 30px);
+      padding: 4px 15px;
+      margin-top: 5px;
+
+      & > p {
+        text-align: left;
+        font-size: 11px;
+        font-family: 'Spartan-SemiBold';
+      }
+    }
+
+    .actions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+
+      .confirm,
+      .cancel {
+        & > p {
+          font-family: 'Spartan-Bold';
+        }
+      }
+
+      .confirm {
+        position: relative;
+        height: 30px;
+        width: 90px;
+        background: $app_purple;
+      }
+
+      .cancel {
+        position: relative;
+        height: 30px;
+        width: 90px;
+        margin-right: 10px;
+        background: $app_red;
+      }
+    }
+  }
+}

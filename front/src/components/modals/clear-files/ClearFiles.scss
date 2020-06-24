@@ -1,0 +1,85 @@
+@import '../../../theme/commons.scss';
+
+.clearfiles {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & > div:nth-child(1) {
+    position: relative;
+    height: 95px;
+    width: 420px;
+    background: white;
+    border-radius: 6px;
+    padding-top: 15px;
+    -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+
+    .msg {
+      position: relative;
+      padding: 5px 0px;
+      width: 90%;
+
+      & > p {
+        position: relative;
+        font-size: 13px;
+        text-align: left;
+      }
+    }
+
+    .actions {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      height: 30px;
+
+      .confirm,
+      .cancel {
+        position: relative;
+        height: 30px;
+        width: 80px;
+        background: $app_purple;
+
+        & > p {
+          font-family: 'Spartan-Bold';
+        }
+      }
+
+      .cancel {
+        background: $app_red;
+        margin-right: 5px;
+      }
+    }
+
+    .loading {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      background: white;
+
+      .message {
+        position: relative;
+        padding: 5px 0px;
+        width: 90%;
+
+        & > p {
+          position: relative;
+          font-size: 12px;
+          font-family: 'Spartan-SemiBold';
+          text-align: center;
+        }
+      }
+
+      .spin {
+        position: relative;
+        height: 18px;
+        width: calc(18px * 4);
+        margin-top: 10px;
+      }
+    }
+  }
+}

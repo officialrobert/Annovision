@@ -24,13 +24,3 @@ os.path.expanduser('~')
 
 `Annovision-Output` named folder contains all of your created project folders named with your project name/title in lowercase format.
 Annovision's output folder can also be shown through the app's right-panel button.
-
-## Screenshot
-
-- **Left panel project actions**
-
-![](img/project_manage.png)
-
-- **Project name input**
-
-![](img/create_project.png)

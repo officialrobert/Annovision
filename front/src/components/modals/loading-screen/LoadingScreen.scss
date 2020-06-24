@@ -1,0 +1,19 @@
+@import '../../../theme/commons.scss';
+
+.loadingsc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  & > span {
+    position: relative;
+    height: 180px;
+    width: 230px;
+    background: url($app_logo);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+}

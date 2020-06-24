@@ -1,0 +1,83 @@
+{
+    "name": "Annovision",
+    "version": "1.0.2006.810",
+    "description": "",
+    "main": "core/main.js",
+    "scripts": {
+        "build-core": "node ./scripts/build.js && yarn pack-core && yarn copy-files && electron-builder build process.env.BUILD_PLATFORM --publish=never",
+        "pack-core": "cross-env NODE_ENV=production webpack --config core-config/webpack.config.prod.core.js",
+        "copy-files": "copy \".\\icon\\app.ico\" \".\\core\\\" && copy \".\\startup.html\" \".\\core\\\" && copy \".\\load.html\" \".\\core\\\" ",
+        "start": "yarn pack-core && yarn copy-files && electron ."
+    },
+    "keywords": [],
+    "author": "roesLabs",
+    "license": "ISC",
+    "dependencies": {
+        "app-root-path": "^3.0.0",
+        "electron-is-dev": "^1.1.0",
+        "electron-log": "^4.0.0",
+        "events": "^3.1.0",
+        "file-loader": "3.0.1",
+        "fs-extra": "7.0.1",
+        "html-webpack-plugin": "4.0.0-beta.5",
+        "identity-obj-proxy": "3.0.0",
+        "moment": "^2.24.0",
+        "mv": "^2.1.1",
+        "winston": "^3.2.1"
+    },
+    "devDependencies": {
+        "@babel/core": "7.6.0",
+        "@babel/preset-env": "^7.7.7",
+        "@typescript-eslint/eslint-plugin": "^2.2.0",
+        "@typescript-eslint/parser": "^2.2.0",
+        "babel-eslint": "10.0.3",
+        "babel-jest": "^24.9.0",
+        "babel-loader": "8.0.6",
+        "babel-plugin-named-asset-import": "^0.3.4",
+        "babel-preset-react-app": "^9.0.2",
+        "camelcase": "^5.2.0",
+        "concurrently": "^5.0.0",
+        "cross-env": "^6.0.3",
+        "dotenv": "6.2.0",
+        "dotenv-expand": "5.1.0",
+        "electron": "^7.1.12",
+        "electron-builder": "^21.2.0",
+        "nodemon": "^2.0.3",
+        "semver": "6.3.0",
+        "uglifyjs-webpack-plugin": "^2.2.0",
+        "url-loader": "2.1.0",
+        "wait-on": "^3.3.0",
+        "webpack": "4.41.0",
+        "webpack-cli": "^3.3.10",
+        "webpack-dev-server": "3.2.1",
+        "webpack-manifest-plugin": "2.1.1",
+        "webpack-node-externals": "^1.7.2",
+        "workbox-webpack-plugin": "4.3.1",
+        "yarn": "^1.19.1"
+    },
+    "build": {
+        "asar": false,
+        "files": [
+            "core/**/*",
+            "app.config",
+            "pysc/**/*",
+            "pycorewin/**/*"
+        ],
+        "win": {
+            "icon": "core/app.ico"
+        }
+    },
+    "babel": {
+        "presets": [
+            "react-app",
+            [
+                "@babel/preset-env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
+                }
+            ]
+        ]
+    }
+}

@@ -1,0 +1,41 @@
+@import '../../../theme/commons.scss';
+
+.header {
+  position: absolute;
+  height: 50px;
+  width: 100%;
+
+  .right {
+    position: absolute;
+    height: 100%;
+    right: 20px;
+
+    .more {
+      position: relative;
+      height: 40px;
+      width: 100px;
+      background: $app_purple;
+      font-family: 'Spartan-Bold';
+    }
+  }
+
+  .info {
+    position: relative;
+    margin-right: 15px;
+    font-size: 14px;
+    text-align: left;
+    color: $app_black;
+  }
+
+  .app_title {
+    position: relative;
+    font-family: 'Spartan-Bold';
+    font-size: 20px;
+    text-align: center;
+    padding: 0px 10px;
+    color: $app_black;
+    border-bottom: 5px solid $app_black;
+    border-top: 5px solid $app_black;
+    height: 30px;
+  }
+}

@@ -45,9 +45,3 @@ An example path of a file's annotation `DriveX:/User/name/Documents/Annovision-O
   "assigned": ["car"]
 }
 ```
-
-## Screenshot
-
-- **Left-panel when `Classification` task is selected**
-
-![](img/classification_setup.png)
