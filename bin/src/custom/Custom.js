@@ -511,9 +511,11 @@ class Custom {
     if (this.IPCS.main) this.IPCS.main.release();
     if (this.IPCS.files) this.IPCS.files.release();
 
+    delete this.app;
     /**
      * Remove all electron app instance listeners (ipcs etc)
      */
+
     app.removeAllListeners('ready');
     app.removeAllListeners('activate');
     app.removeAllListeners('before-quit');

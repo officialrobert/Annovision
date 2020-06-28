@@ -12,6 +12,91 @@
     font-family: 'Spartan-ExtraBold';
   }
 
+  .add {
+    position: relative;
+    height: 25px;
+    width: 55px;
+    background: $app_purple;
+    margin-left: 10px;
+
+    & > p {
+      font-size: 12px;
+      font-family: 'Spartan-Bold';
+    }
+  }
+
+  .actions {
+    position: relative;
+    margin-top: 10px;
+
+    .removeselect,
+    .selectall {
+      position: relative;
+      height: 25px;
+      width: 80px;
+      background: $app_purple;
+
+      & > p {
+        font-size: 12px;
+        font-family: 'Spartan-Bold';
+      }
+    }
+
+    .selectall {
+      height: 25px;
+      width: 95px;
+      margin-left: 5px;
+    }
+  }
+
+  .region {
+    position: relative;
+    margin-top: 5px;
+
+    .newAttribute {
+      position: relative;
+
+      .attributeName {
+        position: relative;
+        height: 30px;
+        width: 140px;
+      }
+    }
+  }
+
+  .classnamelist,
+  .attregionlist {
+    position: relative;
+    margin-top: 15px;
+
+    & > ul {
+      position: relative;
+      list-style-type: none;
+
+      & > li {
+        height: 20px;
+        display: flex;
+        align-items: center;
+        margin: 2px 0px;
+
+        .cb {
+          height: 12px;
+          width: 12px;
+        }
+
+        & > p {
+          position: relative;
+          font-size: 12px;
+          width: 130px;
+          padding-right: 5px;
+          margin-left: 5px;
+          text-align: left;
+          padding-top: 5px;
+        }
+      }
+    }
+  }
+
   .classification {
     position: relative;
     margin-top: 5px;
@@ -19,79 +104,10 @@
     .newclass {
       position: relative;
 
-      .add {
-        position: relative;
-        height: 25px;
-        width: 55px;
-        background: $app_purple;
-        margin-left: 10px;
-
-        & > p {
-          font-size: 12px;
-          font-family: 'Spartan-Bold';
-        }
-      }
-
-      .input {
+      .newclassinp {
         position: relative;
         height: 30px;
         width: 120px;
-      }
-    }
-
-    .actions {
-      position: relative;
-      margin-top: 10px;
-
-      .removeselect,
-      .selectall {
-        position: relative;
-        height: 25px;
-        width: 80px;
-        background: $app_purple;
-
-        & > p {
-          font-size: 12px;
-          font-family: 'Spartan-Bold';
-        }
-      }
-
-      .selectall {
-        height: 25px;
-        width: 95px;
-        margin-left: 5px;
-      }
-    }
-
-    .classnamelist {
-      position: relative;
-      margin-top: 15px;
-
-      & > ul {
-        position: relative;
-        list-style-type: none;
-
-        & > li {
-          height: 20px;
-          display: flex;
-          align-items: center;
-          margin: 2px 0px;
-
-          .cb {
-            height: 12px;
-            width: 12px;
-          }
-
-          & > p {
-            position: relative;
-            font-size: 12px;
-            width: 130px;
-            padding-right: 5px;
-            margin-left: 5px;
-            text-align: left;
-            padding-top: 5px;
-          }
-        }
       }
     }
   }

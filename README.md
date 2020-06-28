@@ -10,16 +10,10 @@ As data becomes critical for training and creating SOTA results in any vision AI
 
 This software haven't been tested on other distributed OS, except for `Windows 10` or newer. Take note that this application and source-code **doesn't embed any sort of analytics** that collects sensitive data, and will always stay that way. No limits, all free software.
 
-## Running source
+## Running from source
 
-Clone the repository and install needed modules as provided under package.json. I would highly recommend using `yarn` package manager.
-
-## Stack
-
-- **ElectronJS** - For web-based UI
-- **Embeddable python** - For core functionality
-- **ReactJS** - Web UI framework
-- **SQLite** - For low latency and overhead in-app data manipulation
+Clone the repository and install needed modules as provided under package.json. Using `yarn` package manager is highly recommended.
+After cloning repository extract embeddable python binaries inside **/pycorwin**, get the tested binaries via this [**link**](https://drive.google.com/file/d/1qY0X96uDVDdLVW86__BdJ1483WhD3MD4/view?usp=sharing)
 
 ## Documentation
 
@@ -32,6 +26,14 @@ Clone the repository and install needed modules as provided under package.json. 
 
 This project is at its early-stage, shoot me an e-mail at `officialrobert.espina9627@gmail.com`.
 If you like or love this initiative, please don't forget to give it a star, alright.
+
+## Stack credits
+
+- **ElectronJS** - For web-based UI
+- **Embeddable python** - For core functionality
+- **ReactJS** - Web UI framework
+- **SQLite** - For low latency and overhead in-app data manipulation
+- **Mousetrap** - For window hotkey bindings
 
 ## License
 

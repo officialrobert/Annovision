@@ -1,9 +1,11 @@
-import { fstat } from 'fs';
-
 const Logger = require('./Logger').default;
 const PyCaller = require('./PyCaller').default;
 const path = require('path');
-const { TASK_TYPES, CLASSIFICATION_TASK } = require('../constants/App');
+const {
+  TASK_TYPES,
+  CLASSIFICATION_TASK,
+  REGION_TASK,
+} = require('../constants/App');
 const fs = require('fs');
 
 class AnnoDB {
@@ -210,6 +212,8 @@ class AnnoDB {
           Logger.info(
             `AnnoDB Class: removing project output dir - ${project.name} failed`
           );
+
+        delete this.app.annoDB.projectInKeys[`${project.idx}`];
       } else {
         Logger.error(`AnnoDB Class: removing project - ${project.name} failed`);
       }

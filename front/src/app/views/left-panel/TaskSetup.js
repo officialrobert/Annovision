@@ -15,12 +15,28 @@ import Logger from 'src/lib/Logger';
 
 class TaskSetup extends Component {
   state = {
+    /**
+     * For classification
+     */
     newClassname: '',
     newClassnameErr: false,
     newClassnameSubmit: false,
     classnamesRemove: [],
     classificationAllSelected: false,
     removingClassification: false,
+    /**
+     *
+     */
+
+    /**
+     * For region-based
+     */
+    newRegionAttribute: '',
+    newRegionAttributeErr: false,
+    newRegionAttributeSubmit: false,
+    regionAttributeRemove: [],
+    regionAttributeAllSelected: false,
+    removingRegionAttribute: false,
   };
 
   constructor() {
@@ -32,12 +48,28 @@ class TaskSetup extends Component {
       });
   }
 
+  onRegionAttributeInput = (evt) => {
+    if (!evt) return;
+
+    const { value } = evt.target;
+    this.setState({ newRegionAttribute: value }, this.validateRegionAttribute);
+  };
+
   onClassnameInput = (evt) => {
     if (!evt) return;
 
     const { value } = evt.target;
     this.setState({ newClassname: value }, this.validateClassname);
   };
+
+  validateRegionAttribute = debounce(() => {
+    let err = false;
+    if (!isAlphaNumeric(this.state.newRegionAttribute)) err = true;
+
+    this.setState({
+      newRegionAttributeErr: err,
+    });
+  }, 200);
 
   validateClassname = debounce(() => {
     let err = false;
@@ -46,6 +78,59 @@ class TaskSetup extends Component {
     this.setState({
       newClassnameErr: err,
     });
+  }, 200);
+
+  addRegionAttribute = debounce(() => {
+    const {
+      newRegionAttributeErr,
+      newRegionAttributeSubmit,
+      removingRegionAttribute,
+    } = this.state;
+
+    if (
+      newRegionAttributeErr ||
+      newRegionAttributeSubmit ||
+      removingRegionAttribute
+    )
+      return;
+
+    this.setState(
+      {
+        newRegionAttributeSubmit: true,
+      },
+      async () => {
+        const newRegionAttribute = String(
+          this.state.newRegionAttribute
+        ).toLowerCase();
+        const region = cloneObject(
+          this.props.userConfig.selectedProject.region
+        );
+        const alreadyExists =
+          region.attributes &&
+          region.attributes.includes(newRegionAttribute || '');
+
+        if (newRegionAttribute.length <= 0 || alreadyExists) {
+          await this.setStateAsync({
+            newRegionAttributeSubmit: false,
+            newRegionAttributeErr: false,
+            newRegionAttribute: '',
+          });
+          return;
+        }
+
+        if (region.attributes && region.attributes.length > 0) {
+          region.attributes.push(newRegionAttribute);
+        } else region.attributes = [newRegionAttribute];
+
+        await this.props.setupProjectTask(REGION_BASED_TASK.key, region);
+        await this.setStateAsync({
+          newRegionAttributeSubmit: false,
+          newRegionAttributeErr: false,
+          newRegionAttribute: '',
+          regionAttributeAllSelected: false,
+        });
+      }
+    );
   }, 200);
 
   addClassification = debounce(() => {
@@ -74,6 +159,7 @@ class TaskSetup extends Component {
           await this.setStateAsync({
             newClassnameSubmit: false,
             newClassnameErr: false,
+            newClassname: '',
           });
           return;
         }
@@ -86,15 +172,45 @@ class TaskSetup extends Component {
           CLASSIFICATION_TASK.key,
           classification
         );
-
         await this.setStateAsync({
           newClassnameSubmit: false,
           newClassnameErr: false,
           newClassname: '',
+          classificationAllSelected: false,
         });
       }
     );
   }, 200);
+
+  toggleRegionAttributeToRemove = (evt) => {
+    if (!evt) return;
+
+    if (evt.target.hasAttribute('data')) {
+      try {
+        const regionAttributeRemove = cloneObject(
+          this.state.regionAttributeRemove
+        );
+        const jsonData = JSON.parse(evt.target.getAttribute('data'));
+
+        if (regionAttributeRemove.includes(jsonData.cattribute)) {
+          regionAttributeRemove.splice(
+            regionAttributeRemove.indexOf(jsonData.cattribute),
+            1
+          );
+        } else regionAttributeRemove.push(jsonData.cattribute);
+
+        this.setState({
+          regionAttributeRemove,
+        });
+      } catch (err) {
+        Logger.error(
+          `Selecting region attribute - ${evt.target.getAttribute(
+            'data'
+          )} failed w/ error - ${err.message} `
+        );
+      }
+    }
+  };
 
   toggleClassificationToRemove = (evt) => {
     if (!evt) return;
@@ -121,6 +237,39 @@ class TaskSetup extends Component {
     }
   };
 
+  selectAllRegionAttribute = () => {
+    const { regionAttributeAllSelected, removingRegionAttribute } = this.state;
+    const { selectedProject } = cloneObject(this.props.userConfig);
+    const { region } = selectedProject;
+    const regionAttributeRemove = [];
+
+    if (
+      !region.attributes ||
+      region.attributes.length <= 0 ||
+      removingRegionAttribute
+    )
+      return;
+
+    if (regionAttributeAllSelected) {
+      this.setState({
+        regionAttributeAllSelected: false,
+        regionAttributeRemove: [],
+      });
+      return;
+    } else if (
+      this.state.regionAttributeRemove.length !== region.attributes.length
+    ) {
+      region.attributes.forEach((cattribute) => {
+        regionAttributeRemove.push(cattribute);
+      });
+
+      this.setState({
+        regionAttributeRemove,
+        regionAttributeAllSelected: true,
+      });
+    }
+  };
+
   selectAllClassification = () => {
     const { classificationAllSelected, removingClassification } = this.state;
     const { selectedProject } = cloneObject(this.props.userConfig);
@@ -140,7 +289,9 @@ class TaskSetup extends Component {
         classnamesRemove: [],
       });
       return;
-    } else if (this.state.classnamesRemove.length <= 0) {
+    } else if (
+      this.state.classnamesRemove.length !== classification.classes.length
+    ) {
       classification.classes.forEach((cclass) => {
         classnamesRemove.push(cclass);
       });
@@ -151,6 +302,36 @@ class TaskSetup extends Component {
       });
     }
   };
+
+  removeSelectedRegionAtt = debounce(async () => {
+    if (this.state.removingRegionAttribute) return;
+    else await this.setStateAsync({ removingRegionAttribute: true });
+
+    const { selectedProject } = this.props.userConfig;
+    const { regionAttributeRemove } = this.state;
+    const region = cloneObject(selectedProject.region);
+
+    if (selectedProject.region && regionAttributeRemove.length > 0) {
+      for (let index = 0; index < regionAttributeRemove.length; index++) {
+        const cattribute = regionAttributeRemove[index];
+        region.attributes.splice(region.attributes.indexOf(cattribute), 1);
+      }
+
+      Logger.log(
+        `Removing attributes for region based task - ${JSON.stringify(
+          regionAttributeRemove
+        )}`
+      );
+
+      await this.props.setupProjectTask(REGION_BASED_TASK.key, region);
+      await this.setStateAsync({
+        regionAttributeRemove: [],
+        regionAttributeAllSelected: false,
+      });
+    }
+
+    await this.setStateAsync({ removingRegionAttribute: false });
+  }, 200);
 
   removeSelectedClassification = debounce(async () => {
     if (this.state.removingClassification) return;
@@ -203,7 +384,7 @@ class TaskSetup extends Component {
         <div className={styles.classification}>
           <div className={cx(styles.center_vertical_row, styles.newclass)}>
             <TextInput
-              className={styles.input}
+              className={styles.newclassinp}
               value={newClassname}
               placeholder={i18n('classname_title')}
               onChange={this.onClassnameInput}
@@ -259,6 +440,64 @@ class TaskSetup extends Component {
       );
     } else if (key === REGION_BASED_TASK.key) {
       // @todo
+      const {
+        regionAttributeAllSelected,
+        newRegionAttribute,
+        regionAttributeRemove,
+      } = this.state;
+      return (
+        <div className={styles.region}>
+          <div className={cx(styles.center_vertical_row, styles.newAttribute)}>
+            <TextInput
+              className={styles.attributeName}
+              value={newRegionAttribute}
+              placeholder={i18n('attribute_title')}
+              onChange={this.onRegionAttributeInput}
+            />
+            <Button className={styles.add} onClick={this.addRegionAttribute}>
+              <p>{i18n('add_title')}</p>
+            </Button>
+          </div>
+          <div className={cx(styles.center_vertical_row, styles.actions)}>
+            <Button
+              className={styles.removeselect}
+              onClick={this.removeSelectedRegionAtt}
+            >
+              <p>{i18n('remove_title')}</p>
+            </Button>
+            <Button
+              className={styles.selectall}
+              onClick={this.selectAllRegionAttribute}
+            >
+              <p>
+                {regionAttributeAllSelected
+                  ? i18n('unselect_all')
+                  : i18n('select_all')}
+              </p>
+            </Button>
+          </div>
+          <div className={styles.attregionlist}>
+            <ul onClick={this.toggleRegionAttributeToRemove}>
+              {(() => {
+                if (selectedProject.region) {
+                  return selectedProject.region.attributes.map(
+                    (cattribute, index) => (
+                      <li key={`${REGION_BASED_TASK.key}-${index}`}>
+                        <CheckBox
+                          className={styles.cb}
+                          data={{ index, cattribute }}
+                          selected={regionAttributeRemove.includes(cattribute)}
+                        />
+                        <p>{`${cattribute}`}</p>
+                      </li>
+                    )
+                  );
+                } else return null;
+              })()}
+            </ul>
+          </div>
+        </div>
+      );
     } else if (key === SEGMENTATION_TASK.key) {
       // @todo
     } else return null;

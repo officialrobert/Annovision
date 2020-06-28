@@ -173,7 +173,7 @@ class RightPanel extends Component {
   confirmClearFiles = async () => {
     await this.props.clearAllFiles();
     await this.setStateAsync({
-      currentPage: 0,
+      currentPage: 1,
     });
     this.props.deactivateModal();
   };
@@ -240,12 +240,16 @@ class RightPanel extends Component {
       for (let index = 0; index < res.length; index++) {
         const cFile = res[index];
         importingFilesPercent = Math.floor(((index + 1) / res.length) * 100);
+        const fetchFiles = !!(index === res.length - 1);
 
-        await this.props.addFileForProject({
-          name: cFile.name,
-          path: cFile.path,
-          ext: cFile.ext,
-        });
+        await this.props.addFileForProject(
+          {
+            name: cFile.name,
+            path: cFile.path,
+            ext: cFile.ext,
+          },
+          fetchFiles
+        );
 
         this.setState({
           importingFilesPercent,

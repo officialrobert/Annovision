@@ -52,11 +52,74 @@ export default {
     }
   },
 
-  setResolution: async (AppManager, value = null) => {
+  setTask: (AppManager, task) => {
+    if (!AppManager.mixerReady) {
+      window.ipc.send('main:sendMixer', {
+        key: 'setTask',
+        value: task,
+      });
+    }
+  },
+
+  setResolution: (AppManager, value = null) => {
     if (AppManager.mixerReady)
       window.ipc.send('main:sendMixer', {
         key: 'resolution',
         value: value || AppManager.state.properties.resolution,
       });
+  },
+
+  beginPaint: (AppManager, value = null, task) => {
+    if (AppManager.mixerReady && value) {
+      window.ipc.send('main:sendMixer', {
+        key: 'beginPaint',
+        value,
+        opt: { task },
+      });
+    }
+  },
+
+  continuePaint: (AppManager, value = null, task) => {
+    if (AppManager.mixerReady && value) {
+      window.ipc.send('main:sendMixer', {
+        key: 'continuePaint',
+        value,
+        opt: { task },
+      });
+    }
+  },
+
+  stopPaint: (AppManager, value = null, task) => {
+    if (AppManager.mixerReady && value) {
+      window.ipc.send('main:sendMixer', {
+        key: 'stopPaint',
+        value,
+        opt: { task },
+      });
+    }
+  },
+
+  paintFileAnnotations: (AppManager) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      const { userConfig } = AppManager.state;
+      const active = cloneObject(userConfig.files.active);
+      const task = cloneObject(userConfig.task);
+      if (!active || !task) return;
+
+      let value = cloneObject(AppManager.state.activeAnnotation);
+      window.ipc.send('main:sendMixer', {
+        key: 'paintAnnnotations',
+        value,
+        opt: { task },
+      });
+    }
+  },
+
+  paintImageOnly: (AppManager) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      window.ipc.send('main:sendMixer', { key: 'paintImage', value: true });
+    }
   },
 };

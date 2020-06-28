@@ -3,7 +3,11 @@ import { Provider } from './Context';
 import { withGlobalSettings } from 'src/app-manager/Context';
 import { cloneObject, sleepAsync, debounce } from 'src/helpers/util';
 import Logger from 'src/lib/Logger';
-import { DEFAULT_PROJECT_DATA, TASK_KEYS_IN_ARRAY } from 'src/constants/App';
+import {
+  DEFAULT_PROJECT_DATA,
+  TASK_KEYS_IN_ARRAY,
+  CLASSIFICATION_TASK,
+} from 'src/constants/App';
 
 class ProjectManager extends Component {
   REQUIRED_KEYS = ['name', 'key', 'file', 'permanent', 'numFiles'];
@@ -64,6 +68,7 @@ class ProjectManager extends Component {
 
           await this.props.setUserConfig('selectedProject', defaultFinal);
           await this.props.setUserConfig('files', files, 'setActiveFile');
+          await this.props.setUserConfig('task', CLASSIFICATION_TASK);
           await this.fetchProjectFiles();
         }
       );
@@ -320,9 +325,9 @@ class ProjectManager extends Component {
     await this.setStateAsync({
       importingFiles: false,
     });
-  }, 600);
+  }, 500);
 
-  addFileForProject = async (data = {}) => {
+  addFileForProject = async (data = {}, fetchFiles = true) => {
     const { loaded, importingFiles } = this.state;
     const { userConfig } = this.props;
     const selectedProject = cloneObject(this.state.selectedProject);
@@ -358,10 +363,11 @@ class ProjectManager extends Component {
           selectedProject.numFiles = res.data.numFiles;
           await this.setStateAsync({ selectedProject });
           await this.props.setUserConfig('selectedProject', selectedProject);
-          await this.fetchProjectFiles(
-            minFilesL,
-            minFilesL + files.filesPerPage
-          );
+          if (fetchFiles)
+            await this.fetchProjectFiles(
+              minFilesL,
+              minFilesL + files.filesPerPage
+            );
           await this.updateUserProjects();
         }
       }
@@ -382,7 +388,14 @@ class ProjectManager extends Component {
     const selectedProject = cloneObject(this.state.selectedProject);
     const files = cloneObject(userConfig.files);
 
-    if (removingFiles || !loaded || !selectedProject || importingFiles) return;
+    if (
+      removingFiles ||
+      !loaded ||
+      !selectedProject ||
+      importingFiles ||
+      !selectedProject.numFiles
+    )
+      return;
     await this.setStateAsync({
       removingFiles: true,
     });
@@ -449,7 +462,6 @@ class ProjectManager extends Component {
       selectedProject,
     });
     await this.updateUserProjects();
-
     window.ipc.send('db:setupTask', {
       projectId: selectedProject.idx,
       projectName: selectedProject.name,

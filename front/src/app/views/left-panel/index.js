@@ -8,7 +8,12 @@ import Logger from 'src/lib/Logger';
 import { withGlobalSettings } from 'src/app-manager/Context';
 import { withProjectSettings } from 'src/project-manager/Context';
 import { withModalSettings } from 'src/modal-manager/Context';
-import { IMAGE_FILE_TYPE, TASK_TYPES } from 'src/constants/App';
+import {
+  IMAGE_FILE_TYPE,
+  TASK_TYPES,
+  CLASSIFICATION_TASK,
+  REGION_BASED_TASK,
+} from 'src/constants/App';
 import ProjectExpand from 'src/components/modals/project-expand';
 import DeleteProject from 'src/components/modals/delete-project';
 import CommonMessage from 'src/components/modals/common-message';
@@ -20,7 +25,6 @@ class LeftPanel extends Component {
   state = {
     projectName: 'Default',
     fileType: IMAGE_FILE_TYPE,
-    taskType: TASK_TYPES['region'],
     mounted: false,
   };
 
@@ -40,22 +44,14 @@ class LeftPanel extends Component {
   }
 
   mainOnMount = () => {
-    const { userConfig } = this.props;
-
     if (this.wrap.current) this.props.leftPanelOn(this.wrap.current);
-
-    if (userConfig) {
-      this.setState({
-        taskType: userConfig.task,
-      });
-    }
   };
 
   componentWillUnmount() {
     this.wrap = null;
   }
 
-  selectTask = (evt) => {
+  selectTask = async (evt) => {
     if (!evt) return;
 
     const elem = evt.target;
@@ -67,14 +63,12 @@ class LeftPanel extends Component {
 
         if (importingFiles || removingFiles || removingProject) return;
 
-        this.setState(
-          {
-            taskType: jsonData,
-          },
-          () => {
-            this.props.setUserConfig('task', jsonData);
-          }
-        );
+        await this.props.setUserConfig('task', jsonData);
+        if (jsonData.key === CLASSIFICATION_TASK.key) {
+          this.props.repaintMixer('image-only');
+        } else if (jsonData.key === REGION_BASED_TASK.key) {
+          this.props.repaintMixer();
+        }
       } catch (err) {
         Logger.error(err.message);
       }
@@ -120,13 +114,18 @@ class LeftPanel extends Component {
   };
 
   render() {
-    const { fileType, taskType } = this.state;
+    const { fileType } = this.state;
     const imageSelected = fileType.key === IMAGE_FILE_TYPE.key;
     const { userConfig, showLeftPanel } = this.props;
     let projectName = '';
+    let taskType = {};
 
     if (userConfig.selectedProject)
       projectName = userConfig.selectedProject.name;
+
+    if (userConfig.task) {
+      taskType = userConfig.task;
+    }
 
     return (
       <div

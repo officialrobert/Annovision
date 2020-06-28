@@ -8,13 +8,17 @@ import {
   SUPPORTED_FILE_RESOLUTION_IN_KEYS,
   CLASSIFICATION_TASK,
   TASK_KEYS_IN_ARRAY,
+  REGION_BASED_TASK,
+  REGION_BOUNDINGBOX_NAME,
 } from 'src/constants/App';
 import API from './API';
+import { REGION_POLYGON_NAME } from '../constants/App';
 
 export default class AppManager extends Component {
   onInit = false;
   mixerReady = false;
   mixerReadyCbCalled = false;
+  storingRegionBased = false;
 
   state = {
     leftPanelDom: null,
@@ -77,7 +81,7 @@ export default class AppManager extends Component {
     }
   };
 
-  onMixerReady = async () => {
+  onMixerReady = () => {
     const { loaded, properties } = this.state;
 
     if (this.mixerReadyCbCalled || !loaded) return;
@@ -85,7 +89,7 @@ export default class AppManager extends Component {
     this.mixerReadyCbCalled = true;
     Logger.log('Calling onMixerReady');
     Logger.log(`Setting mixer resolution with - ${properties.resolution}`);
-    await API['setResolution'](this, properties.resolution);
+    API['setResolution'](this, properties.resolution);
   };
 
   onAppResize = debounce(async () => {
@@ -310,6 +314,7 @@ export default class AppManager extends Component {
         }
 
         await this.setStateAsync({ activeAnnotation });
+        API['paintFileAnnotations'](this);
       } catch (err) {
         Logger.error(
           `Fetching file ${active.idx}-${active.name} annotation failed w/ error -${err.messsage}`
@@ -319,35 +324,132 @@ export default class AppManager extends Component {
   };
 
   setAnnotation = async (task, load) => {
-    const { userConfig } = this.state;
+    const { userConfig, activeAnnotation } = this.state;
     const selectedProject = cloneObject(userConfig.selectedProject);
 
     if (!selectedProject || !task || !load) return;
     task = task.toLowerCase();
+    const projectName = selectedProject.name.toLowerCase();
+    let annotation = activeAnnotation[`${task}`];
 
-    if (CLASSIFICATION_TASK.key === task) {
+    if (task === CLASSIFICATION_TASK.key) {
       // write on the file
-      const activeAnnotation = cloneObject(this.state.activeAnnotation);
-      const { cclass, idx } = load;
-      const projectName = selectedProject.name.toLowerCase();
-      let annotation = activeAnnotation[`${task}`];
-
+      const { cclass } = load;
       if (annotation.assigned.length <= 0) annotation.assigned = [cclass];
       else if (annotation.assigned.includes(cclass)) {
         annotation.assigned.splice(annotation.assigned.indexOf(cclass), 1);
       } else annotation.assigned.push(cclass);
+    } else if (task === REGION_BASED_TASK.key) {
+      const { type = null, shape_attr, region_attr, annoidx } = load;
 
-      await window.ipc.invoke('db:setFileAnnotation', {
-        task,
-        projectName,
-        idxFile: idx,
-        annotation,
+      if (!type) return;
+      else if (type === 'insert') {
+        annotation.regions.push({
+          shape_attr,
+          region_attr,
+        });
+      } else if (type === 'update') {
+        annotation.regions[annoidx].region_attr = region_attr;
+      } else if (type === 'remove') {
+        annotation.regions.splice(annoidx, 1);
+      } else return;
+    }
+
+    await window.ipc.invoke('db:setFileAnnotation', {
+      task,
+      projectName,
+      idxFile: load.idx,
+      annotation,
+    });
+
+    await this.setStateAsync({
+      activeAnnotation,
+    });
+  };
+
+  beginPaint = (pStart) => {
+    const { userConfig } = this.state;
+    const task = cloneObject(userConfig.task);
+
+    if (!task) return;
+    else if (REGION_BASED_TASK.key === task.key) {
+      API['beginPaint'](this, pStart, task);
+    }
+  };
+
+  storeAnnoRegionBased = async (points) => {
+    const { userConfig } = this.state;
+    const { task, files } = userConfig;
+    const { active } = files;
+    const { offsetLeft, offsetTop, availHeight, availWidth } = active.fit;
+
+    if (!points.cont.length || this.storingRegionBased) return;
+
+    this.storingRegionBased = true;
+
+    if (task.opt === REGION_BOUNDINGBOX_NAME) {
+      const { height, width, pX, pY } = points.cont[0];
+      let { sX, sY } = points.start[0];
+      const shape_attr = {
+        height: height * (active.height / availHeight),
+        width: width * (active.width / availWidth),
+      };
+      sX = sX > pX ? pX : sX;
+      sY = sY > pY ? pY : sY;
+
+      shape_attr.topLeftX = (sX - offsetLeft) * (active.width / availWidth);
+      shape_attr.topLeftY = (sY - offsetTop) * (active.height / availHeight);
+
+      await this.setAnnotation(task.key, {
+        shape_attr,
+        idx: active.idx,
+        type: 'insert',
+        region_attr: { name: REGION_BOUNDINGBOX_NAME },
       });
+      // redraw
+    } else if (task.opt === REGION_POLYGON_NAME) {
+      const shape_attr = {
+        vertices: [],
+      };
 
-      await this.setStateAsync({
-        activeAnnotation,
+      for (let index = 0; index < points.start.length; index++) {
+        const cpoint = points.start[index];
+        let { sX, sY } = cpoint;
+
+        /**
+         * Translate points
+         */
+        sX = (sX - offsetLeft) * (active.width / availWidth);
+        sY = (sY - offsetTop) * (active.height / availHeight);
+        shape_attr.vertices.push([sX, sY]); // x,y points
+      }
+
+      await this.setAnnotation(task.key, {
+        shape_attr,
+        idx: active.idx,
+        type: 'insert',
+        region_attr: { name: REGION_POLYGON_NAME },
       });
     }
+
+    this.repaintMixer();
+    this.storingRegionBased = false;
+  };
+
+  contPaint = (pCont) => {
+    const { userConfig } = this.state;
+    const task = cloneObject(userConfig.task);
+
+    if (!task) return;
+    else if (REGION_BASED_TASK.key === task.key) {
+      API['continuePaint'](this, pCont, task);
+    }
+  };
+
+  repaintMixer = (type = 'all') => {
+    if (type === 'all') API['paintFileAnnotations'](this);
+    else if (type === 'image-only') API['paintImageOnly'](this);
+    else return;
   };
 
   render() {
@@ -367,6 +469,10 @@ export default class AppManager extends Component {
             toggleLeftPanel: this.toggleLeftPanel,
             activeFileAnnotation: this.activeFileAnnotation,
             setAnnotation: this.setAnnotation,
+            beginPaint: this.beginPaint,
+            contPaint: this.contPaint,
+            storeAnnoRegionBased: this.storeAnnoRegionBased,
+            repaintMixer: this.repaintMixer,
           }}
         >
           {loaded && mounted && this.props.children}

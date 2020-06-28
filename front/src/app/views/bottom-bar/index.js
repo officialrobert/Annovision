@@ -7,8 +7,10 @@ import {
   REGION_BASED_TASK,
   CLASSIFICATION_TASK,
   SEGMENTATION_TASK,
+  REGION_BOUNDINGBOX_NAME,
+  REGION_POLYGON_NAME,
 } from 'src/constants/App';
-import { debounce } from 'src/helpers/util';
+import { debounce, cloneObject } from 'src/helpers/util';
 import Button from 'src/components/button';
 import { withModalSettings } from 'src/modal-manager/Context';
 import ClassificationClasses from 'src/components/modals/classification-classes';
@@ -32,8 +34,8 @@ class BottomBar extends Component {
   }
 
   componentWillUnmount() {
-    this.taskActionsRef = null;
     window.removeEventListener('resize', this.handleBottomBarResize);
+    delete this.taskActionsRef;
   }
 
   handleBottomBarResize = debounce(() => {
@@ -64,6 +66,18 @@ class BottomBar extends Component {
     );
   };
 
+  regionBasedOpt = (evt) => {
+    if (!evt) return;
+    else if (evt.target.hasAttribute('data')) {
+      const { userConfig } = this.props;
+      const task = cloneObject(userConfig.task);
+      const opt = evt.target.getAttribute('data');
+      task.opt = opt;
+
+      this.props.setUserConfig('task', task);
+    }
+  };
+
   getTaskActions = () => {
     const { userConfig } = this.props;
     const { task } = userConfig;
@@ -77,10 +91,14 @@ class BottomBar extends Component {
           <Button
             className={styles.edit}
             onClick={() => {
-              this.props.setDOM(
-                <ClassificationClasses close={this.props.deactivateModal} />
-              );
-              this.props.activateModal();
+              const { userConfig, activeAnnotation } = this.props;
+
+              if (userConfig.files.active && activeAnnotation) {
+                this.props.setDOM(
+                  <ClassificationClasses close={this.props.deactivateModal} />
+                );
+                this.props.activateModal();
+              }
             }}
           >
             <p>{i18n('edit_classses')}</p>
@@ -89,6 +107,40 @@ class BottomBar extends Component {
       );
     } else if (REGION_BASED_TASK.key === task.key) {
       // @todo
+
+      const hasOpt = !!task.opt;
+
+      return (
+        <div className={cx(styles.center_vertical_row, styles.actions_region)}>
+          <div
+            onClick={this.regionBasedOpt}
+            className={styles.center_vertical_row}
+          >
+            <div
+              className={cx(styles.center_all_row, styles.bbox, {
+                [styles.selected]:
+                  hasOpt && task.opt === REGION_BOUNDINGBOX_NAME,
+              })}
+            >
+              <span />
+              <div data={REGION_BOUNDINGBOX_NAME} className={styles.cover} />
+            </div>
+            <div
+              className={cx(styles.center_all_row, styles.polygon, {
+                [styles.selected]: hasOpt && task.opt === REGION_POLYGON_NAME,
+              })}
+            >
+              <span />
+              <span /> <span /> <span />
+              <span />
+              <div data={REGION_POLYGON_NAME} className={styles.cover} />
+            </div>
+          </div>
+          <div className={styles.regions}>
+            <p className={styles.title}>{i18n('regions_title')}</p>
+          </div>
+        </div>
+      );
     } else if (SEGMENTATION_TASK.key === task.key) {
       // @todo
     } else return null;

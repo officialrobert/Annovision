@@ -48,5 +48,7 @@
     "select_all": "Select all",
     "unselect_all": "Unselect all",
     "edit_classses": "Edit classes",
-    "empty_title": "Empty"
+    "empty_title": "Empty",
+    "attribute_title": "Attribute",
+    "regions_title": "Regions"
 }

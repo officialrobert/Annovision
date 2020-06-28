@@ -39,9 +39,9 @@ export const DEFAULT_PROJECT_DATA = {
   permanent: true,
   numFiles: 0,
   classification: { classes: [] },
-  // labels-colors index must match
-  region: { labels: [], colors: [] },
-  segmentation: { labels: [], colors: [] },
+  // attributes-colors-types index must match
+  region: { colors: [], attributes: [], types: [] },
+  segmentation: { colors: [], attributes: [], types: [] },
 };
 
 export const SUPPORTED_FILE_RESOLUTION = [
@@ -59,3 +59,9 @@ export const USER_CONFIG_FILES_DEFAULT = {
   currentPage: 1,
   active: null,
 };
+
+export const REGION_BOUNDINGBOX_NAME = 'region-bounding-box';
+
+export const REGION_POLYGON_NAME = 'region-polygon';
+
+export const POINTS_BLOCK_RADIUS = 10;

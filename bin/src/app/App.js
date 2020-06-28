@@ -61,6 +61,8 @@ class App {
      * We release all variables or listeneers here
      */
     this.MainEvents.emptyCallStack();
+    delete this.app;
+
     if (Custom) Custom.exit();
   };
 
