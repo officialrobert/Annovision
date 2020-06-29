@@ -1,8 +1,12 @@
 # Annovision (/ˌinəˈvāSH(ə)n/)
 
-<img src="https://github.com/officialrobert/Annovision/blob/master/docs/logo.png" width="210" height="150"/>
+<img src="https://github.com/officialrobert/Annovision/blob/master/docs/logo.png" width="205" height="140"/>
 
 An open-source desktop application for annotating/labelling data for vision AI. This tool includes **project management** and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running.
+
+> **In progress**
+
+<img src="https://github.com/officialrobert/Annovision/blob/master/docs/img/wip.png" width="640" height="360"/>
 
 ## Our platform
 
@@ -42,9 +46,7 @@ If you like or love this initiative, please don't forget to give it a star, alri
 author = {Robert Espina},
 title = {{Annovision}},
 howpublished = "\url{https://github.com/officialrobert/Annovision}",
-year = {2020},
-}
-
+year = {2020}}
 ```
 
 ## License
