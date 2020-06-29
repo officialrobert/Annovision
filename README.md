@@ -2,7 +2,7 @@
 
 <img src="https://github.com/officialrobert/Annovision/blob/master/docs/logo.png" width="210" height="150"/>
 
-An open-source desktop application for annotating/labelling data for vision AI. This tool includes project management and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running.
+An open-source desktop application for annotating/labelling data for vision AI. This tool includes **project management** and primarily supports annotation for **Classification**, **Segmentation** and **Object-detection** tasks. The current repository sits all required source-code to enable the tool up and running.
 
 ## Our platform
 
@@ -12,7 +12,7 @@ This software haven't been tested on other distributed OS, except for `Windows 1
 
 ## Running from source
 
-Clone the repository and install needed modules as provided under package.json. Using `yarn` package manager is highly recommended.
+Clone this repository and install needed modules as provided under package.json. Using `yarn` package manager is highly recommended.
 After cloning repository extract embeddable python binaries inside **/pycorwin**, get the tested binaries via this [**link**](https://drive.google.com/file/d/1qY0X96uDVDdLVW86__BdJ1483WhD3MD4/view?usp=sharing)
 
 ## Documentation
@@ -35,6 +35,15 @@ If you like or love this initiative, please don't forget to give it a star, alri
 - **SQLite** - For low latency and overhead in-app data manipulation
 - **Mousetrap** - For window hotkey bindings
 
+## Citation
+
+@MISC{Annovision,
+author = {Robert Espina},
+title = {{Annovision}},
+howpublished = "\url{https://github.com/officialrobert/Annovision}",
+year = {2020},
+}
+
 ## License
 
-All for educational purposes. All free. Read more of Apache-2.0.
+All for educational purposes. All free. Read more of [Apache-2.0](https://github.com/officialrobert/Annovision/blob/master/LICENSE).
