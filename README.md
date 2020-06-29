@@ -37,15 +37,16 @@ If you like or love this initiative, please don't forget to give it a star, alri
 
 ## Citation
 
-````
+```
 @MISC{Annovision,
 author = {Robert Espina},
 title = {{Annovision}},
 howpublished = "\url{https://github.com/officialrobert/Annovision}",
 year = {2020},
-}```
+}
+
+```
 
 ## License
 
-All for educational purposes. All free. Read more of [Apache-2.0](https://github.com/officialrobert/Annovision/blob/master/LICENSE).
-````
+All for educational purposes. All free. Read more of [**Apache 2.0**](https://github.com/officialrobert/Annovision/blob/master/LICENSE).
