@@ -7,6 +7,8 @@ import {
   DEFAULT_PROJECT_DATA,
   TASK_KEYS_IN_ARRAY,
   CLASSIFICATION_TASK,
+  DEFAULT_REGION_INSPECT,
+  DEFAULT_SEGMENTATION_INSPECT,
 } from 'src/constants/App';
 
 class ProjectManager extends Component {
@@ -387,6 +389,7 @@ class ProjectManager extends Component {
     const { userConfig } = this.props;
     const selectedProject = cloneObject(this.state.selectedProject);
     const files = cloneObject(userConfig.files);
+    const inspect = cloneObject(this.props.inspect);
 
     if (
       removingFiles ||
@@ -411,6 +414,8 @@ class ProjectManager extends Component {
         files.currentPage = 1;
         files.active = null;
         selectedProject.numFiles = 0;
+        inspect.region = { ...DEFAULT_REGION_INSPECT };
+        inspect.segmentation = { ...DEFAULT_SEGMENTATION_INSPECT };
 
         await this.setStateAsync({ projectFiles: [], selectedProject });
         await this.props.setUserConfig('files', files);
@@ -419,6 +424,8 @@ class ProjectManager extends Component {
         Logger.log(
           `Clearing all files for project - ${this.state.selectedProject.name} numFiles - ${this.state.selectedProject.numFiles} `
         );
+        await this.props.setGlobalState('activeAnnotation', null);
+        await this.props.setGlobalState('inspect', inspect);
       }
     } catch (err) {
       Logger.error(
@@ -484,6 +491,12 @@ class ProjectManager extends Component {
           fetchProjectFiles: this.fetchProjectFiles,
           clearAllFiles: this.clearAllFiles,
           setupProjectTask: this.setupProjectTask,
+
+          /**
+           * `ProjectManager` also consumes `AppManager`'s props.
+           *
+           */
+          ...this.props,
         }}
       >
         {this.props.children}

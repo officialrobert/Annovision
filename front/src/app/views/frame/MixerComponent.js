@@ -7,8 +7,8 @@ import {
   REGION_BOUNDINGBOX_NAME,
   CLASSIFICATION_TASK,
   REGION_BASED_TASK,
+  REGION_POLYGON_NAME,
 } from 'src/constants/App';
-import { REGION_POLYGON_NAME } from '../../../constants/App';
 
 class MixerComponent extends Component {
   canvasRef = null;
@@ -264,7 +264,6 @@ class MixerComponent extends Component {
     const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
 
     if (isBeyondNotAllowed) {
-      // end drag
       this.endDrag();
       return;
     } else if (task.opt === REGION_BOUNDINGBOX_NAME) {

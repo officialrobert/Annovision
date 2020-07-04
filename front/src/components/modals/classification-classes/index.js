@@ -58,7 +58,16 @@ class ClassificationClasses extends Component {
   render() {
     const { selectedProject, activeAnnotation } = this.props;
     const { classification } = selectedProject;
-    const classes = classification.classes || [];
+    const assigned = activeAnnotation[`${CLASSIFICATION_TASK.key}`].assigned;
+    const classes = [...classification.classes] || [];
+
+    for (let index = 0; index < assigned.length; index++) {
+      const cassigned = assigned[index];
+
+      if (!classes.includes(cassigned)) {
+        classes.push(cassigned);
+      }
+    }
 
     return (
       <section
@@ -82,11 +91,7 @@ class ClassificationClasses extends Component {
                   <Checkbox
                     className={styles.cb}
                     data={{ cclass, index }}
-                    selected={
-                      !!activeAnnotation[
-                        `${CLASSIFICATION_TASK.key}`
-                      ].assigned.includes(cclass)
-                    }
+                    selected={!!assigned.includes(cclass)}
                   />
                   <p className={styles.text_overflow_ellipsis}>{cclass} </p>
                 </li>

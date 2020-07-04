@@ -5,6 +5,8 @@ import {
   REGION_BASED_TASK,
   CLASSIFICATION_TASK,
   SEGMENTATION_TASK,
+  DEFAULT_RGB_SEGMENTATION,
+  AVAIL_COLORS_SEGMENTATION,
 } from 'src/constants/App';
 import Button from 'src/components/button';
 import TextInput from 'src/components/text-input';
@@ -37,6 +39,23 @@ class TaskSetup extends Component {
     regionAttributeRemove: [],
     regionAttributeAllSelected: false,
     removingRegionAttribute: false,
+
+    /**
+     * For segmentation
+     */
+
+    newSegmentationLabel: '',
+    newSegmentationLabelErr: false,
+    newSegmentationColor: DEFAULT_RGB_SEGMENTATION,
+    finalSegmentationColor: DEFAULT_RGB_SEGMENTATION,
+    customSegmentationColor: '',
+    newSegmentationColorErr: false,
+    newSegmentationLabelSubmit: false,
+    segmentationLabelRemove: [],
+    segmentationLabelAllSelected: false,
+    removingSegmentationLabel: false,
+    colorExists: false,
+    labelExists: false,
   };
 
   constructor() {
@@ -47,6 +66,49 @@ class TaskSetup extends Component {
         this.setState({ ...obj }, resolve);
       });
   }
+
+  selectColorForLabel = (evt) => {
+    if (!evt) return;
+
+    if (evt.target.hasAttribute('data')) {
+      try {
+        const ccolor = evt.target.getAttribute('data');
+
+        if (!ccolor || ccolor.length < 0) {
+          return;
+        }
+
+        this.setState({
+          finalSegmentationColor: ccolor,
+          newSegmentationColor: ccolor,
+        });
+      } catch (err) {
+        Logger.error(`Selecting color failed with error - ${err.message}`);
+      }
+    }
+  };
+
+  onSegmentationColorInput = (evt) => {
+    if (!evt) return;
+
+    const { value } = evt.target;
+    this.setState(
+      {
+        newSegmentationColor: value,
+      },
+      this.validateSegmentationColor
+    );
+  };
+
+  onSegmentationLabelInput = (evt) => {
+    if (!evt) return;
+
+    const { value } = evt.target;
+    this.setState(
+      { newSegmentationLabel: value },
+      this.validateSegmentationLabel
+    );
+  };
 
   onRegionAttributeInput = (evt) => {
     if (!evt) return;
@@ -61,6 +123,62 @@ class TaskSetup extends Component {
     const { value } = evt.target;
     this.setState({ newClassname: value }, this.validateClassname);
   };
+
+  validateSegmentationColor = debounce(() => {
+    //validate color (r,g,b) input
+    try {
+      this.setState({
+        labelExists: false,
+        colorExists: false,
+      });
+
+      let { newSegmentationColor } = this.state;
+      newSegmentationColor = String(newSegmentationColor)
+        .replace(/^\s+|\s+$/gm, '')
+        .toLowerCase();
+
+      const colorsArr = newSegmentationColor.split(',');
+      if (colorsArr.length !== 3) {
+        throw new Error('Not a valid RGB format');
+      }
+
+      colorsArr.forEach((cclr) => {
+        const inNum = Number(cclr);
+        if (Number.isNaN(inNum)) throw new Error('Not a number');
+        else if (inNum < 0 || inNum > 255)
+          throw new Error('Number is beyond rgb 8 bit');
+        else return inNum;
+      });
+
+      let isCustom = false;
+      if (!AVAIL_COLORS_SEGMENTATION.includes(newSegmentationColor)) {
+        isCustom = true;
+      }
+
+      this.setState({
+        newSegmentationColor,
+        finalSegmentationColor: newSegmentationColor,
+        ...(isCustom && { customSegmentationColor: newSegmentationColor }),
+        newSegmentationColorErr: false,
+      });
+    } catch (err) {
+      Logger.error(`Invalid RGB input - ${err.message}`);
+      this.setState({
+        newSegmentationColorErr: true,
+      });
+    }
+  }, 200);
+
+  validateSegmentationLabel = debounce(() => {
+    let err = false;
+    if (!isAlphaNumeric(this.state.newSegmentationLabel)) err = true;
+
+    this.setState({
+      newSegmentationLabelErr: err,
+      labelExists: false,
+      colorExists: false,
+    });
+  }, 200);
 
   validateRegionAttribute = debounce(() => {
     let err = false;
@@ -78,6 +196,82 @@ class TaskSetup extends Component {
     this.setState({
       newClassnameErr: err,
     });
+  }, 200);
+
+  addSegmentationLabel = debounce(() => {
+    const {
+      newSegmentationLabelErr,
+      newSegmentationColorErr,
+      newSegmentationLabelSubmit,
+      removingSegmentationLabel,
+    } = this.state;
+
+    if (
+      newSegmentationLabelSubmit ||
+      removingSegmentationLabel ||
+      newSegmentationLabelErr ||
+      newSegmentationColorErr
+    )
+      return;
+
+    this.setState(
+      {
+        newSegmentationLabelSubmit: true,
+      },
+      async () => {
+        const newSegmentationLabel = String(
+          this.state.newSegmentationLabel
+        ).toLowerCase();
+        const newSegmentationColor = String(
+          this.state.newSegmentationColor
+        ).toLowerCase();
+        const segmentation = cloneObject(
+          this.props.userConfig.selectedProject.segmentation
+        );
+
+        const colorExists = segmentation.colors.includes(newSegmentationColor);
+        const labelExists = segmentation.labels.includes(newSegmentationLabel);
+
+        if (!newSegmentationLabel.length) {
+          this.setState({
+            newSegmentationLabelErr: true,
+            newSegmentationLabelSubmit: false,
+          });
+          return;
+        } else if (!newSegmentationColor.length) {
+          this.setState({
+            newSegmentationColorErr: true,
+            newSegmentationLabelSubmit: false,
+          });
+          return;
+        } else if (colorExists || labelExists) {
+          this.setState({
+            colorExists,
+            labelExists,
+            newSegmentationLabelSubmit: false,
+          });
+          return;
+        }
+
+        if (segmentation.labels.length > 0) {
+          segmentation.colors.push(newSegmentationColor);
+          segmentation.labels.push(newSegmentationLabel);
+        } else {
+          segmentation.colors = [newSegmentationColor];
+          segmentation.labels = [newSegmentationLabel];
+        }
+
+        await this.props.setupProjectTask(SEGMENTATION_TASK.key, segmentation);
+        await this.setStateAsync({
+          colorExists: false,
+          labelExists: false,
+          newSegmentationLabelSubmit: false,
+          newSegmentationLabel: '',
+          newSegmentationLabelErr: false,
+          newSegmentationColorErr: false,
+        });
+      }
+    );
   }, 200);
 
   addRegionAttribute = debounce(() => {
@@ -182,6 +376,46 @@ class TaskSetup extends Component {
     );
   }, 200);
 
+  toggleSegmentLabelToRemove = (evt) => {
+    if (!evt) return;
+
+    if (evt.target.hasAttribute('data')) {
+      try {
+        const segmentationLabelRemove = cloneObject(
+          this.state.segmentationLabelRemove
+        );
+        const jsonData = JSON.parse(evt.target.getAttribute('data'));
+        const { selectedProject } = this.props.userConfig;
+        const { segmentation } = selectedProject;
+
+        if (!segmentation) return;
+        else if (segmentationLabelRemove.includes(jsonData.llabel)) {
+          segmentationLabelRemove.splice(
+            segmentationLabelRemove.indexOf(jsonData.llabel),
+            1
+          );
+        } else segmentationLabelRemove.push(jsonData.llabel);
+
+        if (segmentationLabelRemove.length === segmentation.labels.length) {
+          this.setState({
+            segmentationLabelAllSelected: true,
+          });
+        } else
+          this.setState({
+            segmentationLabelAllSelected: false,
+          });
+
+        this.setState({ segmentationLabelRemove });
+      } catch (err) {
+        Logger.error(
+          `Selecting segmentation label - ${evt.target.getAttribute(
+            'data'
+          )} failed w/ error - ${err.message} `
+        );
+      }
+    }
+  };
+
   toggleRegionAttributeToRemove = (evt) => {
     if (!evt) return;
 
@@ -234,6 +468,42 @@ class TaskSetup extends Component {
           )} failed w/ error - ${err.message} `
         );
       }
+    }
+  };
+
+  selectAllSegmentationLabel = () => {
+    const {
+      removingSegmentationLabel,
+      segmentationLabelAllSelected,
+    } = this.state;
+    const { selectedProject } = cloneObject(this.props.userConfig);
+    const { segmentation } = selectedProject;
+    const segmentationLabelRemove = [];
+
+    if (
+      !segmentation.labels ||
+      segmentation.labels.length <= 0 ||
+      removingSegmentationLabel
+    )
+      return;
+
+    if (segmentationLabelAllSelected) {
+      this.setState({
+        segmentationLabelAllSelected: false,
+        segmentationLabelRemove: [],
+      });
+      return;
+    } else if (
+      this.state.segmentationLabelRemove.length !== segmentation.labels.length
+    ) {
+      segmentation.labels.forEach((llabel) => {
+        segmentationLabelRemove.push(llabel);
+      });
+
+      this.setState({
+        segmentationLabelRemove,
+        segmentationLabelAllSelected: true,
+      });
     }
   };
 
@@ -303,6 +573,39 @@ class TaskSetup extends Component {
     }
   };
 
+  removeSelectedSegmentLabel = debounce(async () => {
+    if (this.state.removingSegmentationLabel) return;
+    else await this.setStateAsync({ removingSegmentationLabel: true });
+
+    const { selectedProject } = this.props.userConfig;
+    const { segmentationLabelRemove } = this.state;
+    const segmentation = cloneObject(selectedProject.segmentation);
+
+    if (segmentation && segmentationLabelRemove.length > 0) {
+      for (let index = 0; index < segmentationLabelRemove.length; index++) {
+        const llabel = segmentationLabelRemove[index];
+        const cidx = segmentation.labels.indexOf(llabel);
+
+        segmentation.labels.splice(cidx, 1);
+        segmentation.colors.splice(cidx, 1);
+      }
+
+      Logger.log(
+        `Removing label for segmentation based task - ${JSON.stringify(
+          segmentationLabelRemove
+        )}`
+      );
+
+      await this.props.setupProjectTask(SEGMENTATION_TASK.key, segmentation);
+      await this.setStateAsync({
+        segmentationLabelRemove: [],
+        segmentationLabelAllSelected: false,
+      });
+    }
+
+    await this.setStateAsync({ removingSegmentationLabel: false });
+  });
+
   removeSelectedRegionAtt = debounce(async () => {
     if (this.state.removingRegionAttribute) return;
     else await this.setStateAsync({ removingRegionAttribute: true });
@@ -311,7 +614,7 @@ class TaskSetup extends Component {
     const { regionAttributeRemove } = this.state;
     const region = cloneObject(selectedProject.region);
 
-    if (selectedProject.region && regionAttributeRemove.length > 0) {
+    if (region && regionAttributeRemove.length > 0) {
       for (let index = 0; index < regionAttributeRemove.length; index++) {
         const cattribute = regionAttributeRemove[index];
         region.attributes.splice(region.attributes.indexOf(cattribute), 1);
@@ -420,18 +723,25 @@ class TaskSetup extends Component {
             <ul onClick={this.toggleClassificationToRemove}>
               {(() => {
                 if (selectedProject.classification) {
-                  return selectedProject.classification.classes.map(
-                    (cclass, index) => (
-                      <li key={`${CLASSIFICATION_TASK.key}-${index}`}>
-                        <CheckBox
-                          className={styles.cb}
-                          data={{ index, cclass }}
-                          selected={classnamesRemove.includes(cclass)}
-                        />
-                        <p>{`${cclass}`}</p>
-                      </li>
-                    )
-                  );
+                  if (selectedProject.classification.classes.length)
+                    return selectedProject.classification.classes.map(
+                      (cclass, index) => (
+                        <li key={`${CLASSIFICATION_TASK.key}-${index}`}>
+                          <CheckBox
+                            className={styles.cb}
+                            data={{ index, cclass }}
+                            selected={classnamesRemove.includes(cclass)}
+                          />
+                          <p>{`${cclass}`}</p>
+                        </li>
+                      )
+                    );
+                  else
+                    return (
+                      <div className={styles.noclassification}>
+                        <p>{i18n('create_first_classname')} </p>
+                      </div>
+                    );
                 } else return null;
               })()}
             </ul>
@@ -443,6 +753,7 @@ class TaskSetup extends Component {
       const {
         regionAttributeAllSelected,
         newRegionAttribute,
+        newRegionAttributeErr,
         regionAttributeRemove,
       } = this.state;
       return (
@@ -453,6 +764,7 @@ class TaskSetup extends Component {
               value={newRegionAttribute}
               placeholder={i18n('attribute_title')}
               onChange={this.onRegionAttributeInput}
+              hasErr={newRegionAttributeErr}
             />
             <Button className={styles.add} onClick={this.addRegionAttribute}>
               <p>{i18n('add_title')}</p>
@@ -480,18 +792,27 @@ class TaskSetup extends Component {
             <ul onClick={this.toggleRegionAttributeToRemove}>
               {(() => {
                 if (selectedProject.region) {
-                  return selectedProject.region.attributes.map(
-                    (cattribute, index) => (
-                      <li key={`${REGION_BASED_TASK.key}-${index}`}>
-                        <CheckBox
-                          className={styles.cb}
-                          data={{ index, cattribute }}
-                          selected={regionAttributeRemove.includes(cattribute)}
-                        />
-                        <p>{`${cattribute}`}</p>
-                      </li>
-                    )
-                  );
+                  if (selectedProject.region.attributes.length > 0)
+                    return selectedProject.region.attributes.map(
+                      (cattribute, index) => (
+                        <li key={`${REGION_BASED_TASK.key}-${index}`}>
+                          <CheckBox
+                            className={styles.cb}
+                            data={{ index, cattribute }}
+                            selected={regionAttributeRemove.includes(
+                              cattribute
+                            )}
+                          />
+                          <p>{`${cattribute}`}</p>
+                        </li>
+                      )
+                    );
+                  else
+                    return (
+                      <div className={styles.noregionatt}>
+                        <p>{i18n('create_first_attribute')} </p>
+                      </div>
+                    );
                 } else return null;
               })()}
             </ul>
@@ -499,7 +820,143 @@ class TaskSetup extends Component {
         </div>
       );
     } else if (key === SEGMENTATION_TASK.key) {
-      // @todo
+      const {
+        newSegmentationLabel,
+        newSegmentationLabelErr,
+        newSegmentationColor,
+        newSegmentationColorErr,
+        finalSegmentationColor,
+        customSegmentationColor,
+        segmentationLabelAllSelected,
+        colorExists,
+        labelExists,
+        segmentationLabelRemove,
+      } = this.state;
+      return (
+        <div className={styles.segmentation}>
+          <div className={cx(styles.center_vertical_column, styles.newsegment)}>
+            <div className={styles.createerr}>
+              <p>
+                {(colorExists || labelExists) && i18n('color_label_exists')}
+              </p>
+            </div>
+            <div className={cx(styles.center_vertical_row, styles.newlabel)}>
+              <TextInput
+                className={styles.input}
+                placeholder={i18n('label_title')}
+                value={newSegmentationLabel}
+                onChange={this.onSegmentationLabelInput}
+                hasErr={newSegmentationLabelErr}
+              />
+              <Button
+                className={styles.add}
+                onClick={this.addSegmentationLabel}
+              >
+                <p>{i18n('add_title')}</p>
+              </Button>
+            </div>
+            <div className={cx(styles.center_vertical_row, styles.color)}>
+              <TextInput
+                className={styles.input}
+                value={newSegmentationColor}
+                hasErr={newSegmentationColorErr}
+                onChange={this.onSegmentationColorInput}
+              />
+              <p className={styles.rgbtitle}>{'(R,G,B)'} </p>
+            </div>
+            <div className={styles.availColors}>
+              <ul onClick={this.selectColorForLabel}>
+                {[...AVAIL_COLORS_SEGMENTATION, customSegmentationColor].map(
+                  (cclr, index) => {
+                    return (
+                      <li
+                        key={`${index}-segmentation-color`}
+                        className={cx({
+                          [styles.selectedcolor]:
+                            finalSegmentationColor === cclr,
+                          [styles.unselectedcolor]:
+                            finalSegmentationColor !== cclr,
+                        })}
+                        data={`${cclr}`}
+                      >
+                        <span
+                          style={{
+                            ...(cclr &&
+                              cclr.length > 0 && {
+                                background: `rgba(${cclr},1)`,
+                              }),
+                          }}
+                          data={`${cclr}`}
+                        />
+                      </li>
+                    );
+                  }
+                )}
+              </ul>
+            </div>
+            <div className={cx(styles.center_vertical_row, styles.actions)}>
+              <Button
+                className={styles.removeselect}
+                onClick={this.removeSelectedSegmentLabel}
+              >
+                <p>{i18n('remove_title')}</p>
+              </Button>
+              <Button
+                className={styles.selectall}
+                onClick={this.selectAllSegmentationLabel}
+              >
+                <p>
+                  {segmentationLabelAllSelected
+                    ? i18n('unselect_all')
+                    : i18n('select_all')}
+                </p>
+              </Button>
+            </div>
+            <div className={styles.segmlabellist}>
+              <ul onClick={this.toggleSegmentLabelToRemove}>
+                {(() => {
+                  if (selectedProject.segmentation) {
+                    if (selectedProject.segmentation.labels.length > 0) {
+                      return selectedProject.segmentation.labels.map(
+                        (llabel, index) => {
+                          const ccolor =
+                            selectedProject.segmentation.colors[index];
+
+                          return (
+                            <li key={`${SEGMENTATION_TASK.key}-${index}`}>
+                              <CheckBox
+                                className={styles.cb}
+                                data={{
+                                  index,
+                                  llabel,
+                                  ccolor,
+                                }}
+                                selected={segmentationLabelRemove.includes(
+                                  llabel
+                                )}
+                              />
+                              <span
+                                style={{ background: `rgba(${ccolor},1)` }}
+                                className={styles.forcolor}
+                              ></span>
+                              <p>{`${llabel}`}</p>
+                            </li>
+                          );
+                        }
+                      );
+                    } else
+                      return (
+                        <div className={styles.nosegmentlabel}>
+                          <p>{i18n('create_first_label')} </p>
+                        </div>
+                      );
+                  } else return null;
+                })()}
+              </ul>
+            </div>
+          </div>
+        </div>
+      );
     } else return null;
   };
 

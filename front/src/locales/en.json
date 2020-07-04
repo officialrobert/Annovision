@@ -50,5 +50,12 @@
     "edit_classses": "Edit classes",
     "empty_title": "Empty",
     "attribute_title": "Attribute",
-    "regions_title": "Regions"
+    "regions_title": "Regions",
+    "label_title": "Label",
+    "color_label_exists": "Color or label name already exists",
+    "create_first_classname": "It's empty. Create your first classname.",
+    "create_first_attribute": "It's empty. Create your first attribute.",
+    "create_first_label": "It's empty. Create your first label",
+    "sure_to_clear_anno": "Are you sure to remove all annotations on this file?",
+    "inspect_mode_title": "Inspect"
 }

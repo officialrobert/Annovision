@@ -20,7 +20,7 @@ export default {
     );
   },
 
-  setTask: async (Mixer, value) => {
+  setTask: (Mixer, value) => {
     Mixer.setState({
       task: value,
     });
@@ -114,20 +114,18 @@ export default {
         if (pY <= sY) height = height * -1;
 
         ctx.globalAlpha = 1;
-        ctx.lineWidth = '6';
+        ctx.lineWidth = '8';
         ctx.strokeStyle = '#4464e4';
         ctx.rect(sX, sY, width, height);
         ctx.stroke();
         ctx.fillStyle = '#4464e4';
-        ctx.globalAlpha = 0.2;
-        ctx.fillRect(sX, sY, width, height);
       } else if (task.opt === REGION_POLYGON_NAME) {
         const startLatest = Mixer.startPaintLoad.length - 1;
         const pointsLatest = Mixer.pointsPaintLoad.length - 1;
         const { pX, pY } = Mixer.pointsPaintLoad[pointsLatest];
 
         ctx.globalAlpha = 1;
-        ctx.lineWidth = '6';
+        ctx.lineWidth = '8';
         ctx.strokeStyle = '#4464e4';
         ctx.fillStyle = '#cc544b';
 
@@ -173,5 +171,20 @@ export default {
     await Mixer.setStateAsync({
       task,
     });
+  },
+
+  setInspect: async (Mixer, inspect) => {
+    if (!Mixer) return;
+
+    const { task } = Mixer.state;
+    await Mixer.setStateAsync({
+      inspect,
+    });
+
+    Mixer.paintActiveFile();
+    if (task.key === REGION_BASED_TASK.key) {
+      Mixer.paintRegionBased();
+      Mixer.repaintOnMain();
+    }
   },
 };

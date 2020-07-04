@@ -41,7 +41,7 @@ export const DEFAULT_PROJECT_DATA = {
   classification: { classes: [] },
   // attributes-colors-types index must match
   region: { colors: [], attributes: [], types: [] },
-  segmentation: { colors: [], attributes: [], types: [] },
+  segmentation: { labels: [], colors: [] },
 };
 
 export const SUPPORTED_FILE_RESOLUTION = [
@@ -65,3 +65,20 @@ export const REGION_BOUNDINGBOX_NAME = 'region-bounding-box';
 export const REGION_POLYGON_NAME = 'region-polygon';
 
 export const POINTS_BLOCK_RADIUS = 10;
+
+export const DEFAULT_RGB_SEGMENTATION = '235, 64, 52';
+
+export const AVAIL_COLORS_SEGMENTATION = [
+  '235, 64, 52',
+  '242, 108, 5',
+  '232, 190, 23',
+  '164, 227, 16',
+  '0, 176, 15',
+  '47, 235, 222',
+  '0, 2, 143',
+  '119, 2, 222',
+];
+
+export const DEFAULT_REGION_INSPECT = { active: 0 };
+
+export const DEFAULT_SEGMENTATION_INSPECT = { active: 0 };

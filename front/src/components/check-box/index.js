@@ -4,7 +4,10 @@ import styles from './CheckBox.scss';
 
 const CheckBox = (props) => {
   return (
-    <div className={cx(props.className, styles.checkbox)}>
+    <div
+      onClick={props.onChange}
+      className={cx(props.className, styles.checkbox)}
+    >
       <div
         className={cx({
           [styles.activate]: props.selected,

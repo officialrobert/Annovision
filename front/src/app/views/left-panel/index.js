@@ -5,7 +5,6 @@ import styles from './LeftPanel.scss';
 import Button from 'src/components/button';
 import RadioSelect from 'src/components/radio-select';
 import Logger from 'src/lib/Logger';
-import { withGlobalSettings } from 'src/app-manager/Context';
 import { withProjectSettings } from 'src/project-manager/Context';
 import { withModalSettings } from 'src/modal-manager/Context';
 import {
@@ -19,6 +18,7 @@ import DeleteProject from 'src/components/modals/delete-project';
 import CommonMessage from 'src/components/modals/common-message';
 import CreateProject from 'src/components/modals/create-project';
 import TaskSetup from './TaskSetup';
+import { SEGMENTATION_TASK } from '../../../constants/App';
 
 class LeftPanel extends Component {
   wrap = null;
@@ -63,11 +63,13 @@ class LeftPanel extends Component {
 
         if (importingFiles || removingFiles || removingProject) return;
 
-        await this.props.setUserConfig('task', jsonData);
+        await this.props.setUserConfig('task', jsonData, 'setTask');
         if (jsonData.key === CLASSIFICATION_TASK.key) {
           this.props.repaintMixer('image-only');
         } else if (jsonData.key === REGION_BASED_TASK.key) {
           this.props.repaintMixer();
+        } else if (jsonData.key === SEGMENTATION_TASK.key) {
+          this.props.repaintMixer('image-only');
         }
       } catch (err) {
         Logger.error(err.message);
@@ -221,6 +223,4 @@ class LeftPanel extends Component {
   }
 }
 
-export default withGlobalSettings(
-  withModalSettings(withProjectSettings(LeftPanel))
-);
+export default withProjectSettings(withModalSettings(LeftPanel));

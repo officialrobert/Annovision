@@ -10,6 +10,8 @@ import {
   TASK_KEYS_IN_ARRAY,
   REGION_BASED_TASK,
   REGION_BOUNDINGBOX_NAME,
+  DEFAULT_REGION_INSPECT,
+  DEFAULT_SEGMENTATION_INSPECT,
 } from 'src/constants/App';
 import API from './API';
 import { REGION_POLYGON_NAME } from '../constants/App';
@@ -32,7 +34,16 @@ export default class AppManager extends Component {
     properties: null,
     dirs: {},
     mixerDOM: null,
+
+    /**
+     * Considered global states below
+     */
     activeAnnotation: null,
+    inspect: {
+      region: { ...DEFAULT_REGION_INSPECT },
+      segmentation: { ...DEFAULT_SEGMENTATION_INSPECT },
+      isOn: false,
+    },
   };
 
   constructor() {
@@ -149,12 +160,12 @@ export default class AppManager extends Component {
       !objectHasSameKeys(USER_CONFIG_FILES_DEFAULT, userConfig.files)
     ) {
       Logger.log('Applying userConfig:files default');
-      await this.setUserConfig('files', USER_CONFIG_FILES_DEFAULT);
+      await this.setUserConfig('files', { ...USER_CONFIG_FILES_DEFAULT });
     }
 
     if (!userConfig.task) {
       Logger.log('Applying userConfig:task default');
-      await this.setUserConfig('task', CLASSIFICATION_TASK);
+      await this.setUserConfig('task', { ...CLASSIFICATION_TASK });
     }
 
     await this.setStateAsync({ loaded: true });
@@ -203,7 +214,7 @@ export default class AppManager extends Component {
     await this.setStateAsync({
       userConfig: {
         ...this.state.userConfig,
-        [key]: value,
+        [`${key}`]: value,
       },
     });
 
@@ -313,8 +324,11 @@ export default class AppManager extends Component {
           } else throw new Error(res.error);
         }
 
-        await this.setStateAsync({ activeAnnotation });
-        API['paintFileAnnotations'](this);
+        await this.setGlobalState(
+          'activeAnnotation',
+          activeAnnotation,
+          'paintFileAnnotations'
+        );
       } catch (err) {
         Logger.error(
           `Fetching file ${active.idx}-${active.name} annotation failed w/ error -${err.messsage}`
@@ -334,13 +348,15 @@ export default class AppManager extends Component {
 
     if (task === CLASSIFICATION_TASK.key) {
       // write on the file
-      const { cclass } = load;
+      const { cclass } = cloneObject(load);
       if (annotation.assigned.length <= 0) annotation.assigned = [cclass];
       else if (annotation.assigned.includes(cclass)) {
         annotation.assigned.splice(annotation.assigned.indexOf(cclass), 1);
       } else annotation.assigned.push(cclass);
     } else if (task === REGION_BASED_TASK.key) {
-      const { type = null, shape_attr, region_attr, annoidx } = load;
+      const { type = null, shape_attr, region_attr, annoidx } = cloneObject(
+        load
+      );
 
       if (!type) return;
       else if (type === 'insert') {
@@ -452,6 +468,29 @@ export default class AppManager extends Component {
     else return;
   };
 
+  setGlobalState = async (key, value, fn = null, verbose = false) => {
+    if (!key || typeof value === 'undefined') return;
+
+    await this.setStateAsync({
+      [`${key}`]: value,
+    });
+
+    if (verbose)
+      Logger.log(
+        `Set global state - ${key} with value - ${
+          typeof value === 'object' ? JSON.stringify(value) : value
+        }`
+      );
+
+    if (fn) {
+      const cb = API[`${fn}`];
+
+      if (typeof cb === 'function') {
+        await cb(this);
+      }
+    }
+  };
+
   render() {
     const { loaded, mounted } = this.state;
 
@@ -473,6 +512,7 @@ export default class AppManager extends Component {
             contPaint: this.contPaint,
             storeAnnoRegionBased: this.storeAnnoRegionBased,
             repaintMixer: this.repaintMixer,
+            setGlobalState: this.setGlobalState,
           }}
         >
           {loaded && mounted && this.props.children}

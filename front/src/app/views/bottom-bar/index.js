@@ -14,6 +14,7 @@ import { debounce, cloneObject } from 'src/helpers/util';
 import Button from 'src/components/button';
 import { withModalSettings } from 'src/modal-manager/Context';
 import ClassificationClasses from 'src/components/modals/classification-classes';
+import Checkbox from 'src/components/check-box';
 
 class BottomBar extends Component {
   taskActionsRef = null;
@@ -78,6 +79,35 @@ class BottomBar extends Component {
     }
   };
 
+  setActiveRegion = debounce(async (type = null) => {
+    const { activeAnnotation, userConfig } = this.props;
+    const { selectedProject } = userConfig;
+    const files = cloneObject(userConfig.files);
+    const inspect = cloneObject(this.props.inspect);
+
+    if (!selectedProject || !type || !activeAnnotation || !files.active) {
+      return;
+    }
+
+    let activeRegion = inspect.region.active;
+    const region = activeAnnotation.region;
+    if (type === 'increase') activeRegion += 1;
+    else if (type === 'decrease') activeRegion -= 1;
+
+    if (activeRegion < 0) activeRegion = region.regions.length;
+    else if (activeRegion > region.regions.length) activeRegion = 0;
+
+    inspect.region.active = activeRegion;
+    await this.props.setGlobalState('inspect', inspect, 'setInspect');
+  }, 150);
+
+  toggleInspectMode = async () => {
+    const inspect = cloneObject(this.props.inspect);
+    inspect.isOn = !inspect.isOn;
+
+    await this.props.setGlobalState('inspect', inspect, 'setInspect');
+  };
+
   getTaskActions = () => {
     const { userConfig } = this.props;
     const { task } = userConfig;
@@ -106,9 +136,8 @@ class BottomBar extends Component {
         </div>
       );
     } else if (REGION_BASED_TASK.key === task.key) {
-      // @todo
-
       const hasOpt = !!task.opt;
+      const { inspect } = this.props;
 
       return (
         <div className={cx(styles.center_vertical_row, styles.actions_region)}>
@@ -136,8 +165,27 @@ class BottomBar extends Component {
               <div data={REGION_POLYGON_NAME} className={styles.cover} />
             </div>
           </div>
-          <div className={styles.regions}>
-            <p className={styles.title}>{i18n('regions_title')}</p>
+
+          <div className={cx(styles.center_vertical_row, styles.traverse)}>
+            <Button
+              forCancel={false}
+              className={cx(styles.center_vertical_row, styles.prev)}
+              onClick={() => this.setActiveRegion('decrease')}
+            >
+              <p className={styles.center_all_row}>{'<'}</p>
+            </Button>
+            <div
+              className={cx(styles.center_vertical_row, styles.currentregion)}
+            >
+              <p>{inspect.region.active} </p>
+            </div>
+            <Button
+              forCancel={false}
+              className={cx(styles.center_vertical_row, styles.next)}
+              onClick={() => this.setActiveRegion('increase')}
+            >
+              <p className={styles.center_all_row}>{'>'}</p>
+            </Button>
           </div>
         </div>
       );
@@ -147,6 +195,7 @@ class BottomBar extends Component {
   };
 
   render() {
+    const { inspect } = this.props;
     const { rightPanel, leftPanel } = this.state;
 
     return (
@@ -157,6 +206,16 @@ class BottomBar extends Component {
           </div>
           <div className={styles.clear}>
             <p>{i18n('clear_title')}</p>
+          </div>
+          <div className={cx(styles.center_vertical_row, styles.inspectmode)}>
+            <Checkbox
+              onChange={this.toggleInspectMode}
+              selected={inspect.isOn}
+              className={styles.cb}
+            />
+            <p className={cx(styles.center_vertical_row, styles.title)}>
+              {i18n('inspect_mode_title')}
+            </p>
           </div>
         </div>
         <div

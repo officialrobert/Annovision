@@ -1,0 +1,21 @@
+@import '../.././../theme/commons.scss';
+
+.clearanno {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  & > div:nth-child(1) {
+    position: relative;
+    width: 410px;
+    height: 95px;
+    padding-top: 15px;
+    border-radius: 6px;
+    -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    background: white;
+    overflow: hidden;
+  }
+}

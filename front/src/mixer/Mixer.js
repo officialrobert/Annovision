@@ -63,6 +63,7 @@ export default class Mixer extends Component {
 
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.globalAlpha = 1;
+    ctx.closePath();
 
     c.setAttribute('width', active.canvasW);
     c.setAttribute('height', active.canvasH);
@@ -117,7 +118,7 @@ export default class Mixer extends Component {
   };
 
   paintRegionBased = () => {
-    const { task, files, mounted } = this.state;
+    const { task, files, mounted, inspect } = this.state;
     const { active } = files;
     const { region } = this.activeAnnotation;
     const c = document.getElementById(this.CANVAS_ID);
@@ -126,12 +127,12 @@ export default class Mixer extends Component {
     if (!task || !mounted || !active) return;
     const { offsetLeft, offsetTop } = active;
 
-    ctx.beginPath();
-    ctx.lineWidth = '6';
+    ctx.lineWidth = '8';
     ctx.strokeStyle = '#4464e4';
 
     for (let index = 0; index < region.regions.length; index++) {
       const cReg = region.regions[index];
+      ctx.closePath();
 
       if (cReg.region_attr.name === REGION_BOUNDINGBOX_NAME) {
         const sX =
@@ -142,16 +143,66 @@ export default class Mixer extends Component {
         const width = cReg.shape_attr.width * (active.width / region.width);
         const height = cReg.shape_attr.height * (active.height / region.height);
 
+        ctx.beginPath();
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#4464e4';
         ctx.rect(sX, sY, width, height);
         ctx.stroke();
-        ctx.globalAlpha = 0.2;
-        ctx.fillRect(sX, sY, width, height);
-      } else if (cReg.region_attr.name === REGION_POLYGON_NAME) {
-        ctx.fillStyle = '#cc544b';
+        ctx.closePath();
 
+        let fillColor = '#ffffff';
+        let inspectValid = false;
+
+        if (inspect && inspect.isOn) {
+          if (index + 1 === inspect.region.active) {
+            fillColor = '#cc544b';
+            inspectValid = true;
+          }
+        }
+
+        ctx.fillStyle = fillColor;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(sX, sY, width, height);
+        ctx.globalAlpha = 1;
+
+        if (inspectValid) {
+          // draw rect points
+
+          ctx.fillRect(
+            sX - POINTS_BLOCK_RADIUS - 0.5,
+            sY - POINTS_BLOCK_RADIUS - 0.5,
+            POINTS_BLOCK_RADIUS * 2,
+            POINTS_BLOCK_RADIUS * 2
+          );
+
+          ctx.fillRect(
+            sX + width - POINTS_BLOCK_RADIUS - 0.5,
+            sY - POINTS_BLOCK_RADIUS - 0.5,
+            POINTS_BLOCK_RADIUS * 2,
+            POINTS_BLOCK_RADIUS * 2
+          );
+
+          ctx.fillRect(
+            sX - POINTS_BLOCK_RADIUS - 0.5,
+            sY + height - POINTS_BLOCK_RADIUS - 0.5,
+            POINTS_BLOCK_RADIUS * 2,
+            POINTS_BLOCK_RADIUS * 2
+          );
+
+          ctx.fillRect(
+            sX + width - POINTS_BLOCK_RADIUS - 0.5,
+            sY + height - POINTS_BLOCK_RADIUS - 0.5,
+            POINTS_BLOCK_RADIUS * 2,
+            POINTS_BLOCK_RADIUS * 2
+          );
+        }
+      } else if (cReg.region_attr.name === REGION_POLYGON_NAME) {
         const numberOfVertices = cReg.shape_attr.vertices.length;
+        const rectToFill = [];
+
+        ctx.beginPath();
+        ctx.globalAlpha = 1;
+
         for (
           let polygonidx = 0;
           polygonidx < numberOfVertices - 1;
@@ -166,35 +217,50 @@ export default class Mixer extends Component {
           const sX = vertex[0] * (active.width / region.width) + offsetLeft;
           const sY = vertex[1] * (active.height / region.height) + offsetTop;
 
-          ctx.globalAlpha = 1;
-          ctx.moveTo(sX, sY);
-          ctx.fillRect(
-            sX - POINTS_BLOCK_RADIUS - 0.5,
-            sY - POINTS_BLOCK_RADIUS - 0.5,
-            POINTS_BLOCK_RADIUS * 2,
-            POINTS_BLOCK_RADIUS * 2
-          );
+          if (polygonidx === 0) ctx.moveTo(sX, sY);
           ctx.lineTo(sXNext, sYNext);
+          rectToFill.push([sX, sY]);
 
           if (polygonidx === numberOfVertices - 2) {
             ctx.moveTo(sXNext, sYNext);
-            ctx.fillRect(
-              sXNext - POINTS_BLOCK_RADIUS - 0.5,
-              sYNext - POINTS_BLOCK_RADIUS - 0.5,
-              POINTS_BLOCK_RADIUS * 2,
-              POINTS_BLOCK_RADIUS * 2
-            );
-
             ctx.lineTo(
               cReg.shape_attr.vertices[0][0] * (active.width / region.width) +
                 offsetLeft,
               cReg.shape_attr.vertices[0][1] * (active.height / region.height) +
                 offsetTop
             );
+            rectToFill.push([sXNext, sYNext]);
           }
-
-          ctx.stroke();
         }
+
+        let fillColor = '#ffffff';
+        let inspectValid = false;
+
+        if (inspect && inspect.isOn) {
+          if (index + 1 === inspect.region.active) {
+            fillColor = '#cc544b';
+            inspectValid = true;
+          }
+        }
+
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fillStyle = fillColor;
+        ctx.globalAlpha = 0.3;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        if (inspectValid)
+          rectToFill.forEach((fillCoords) => {
+            const sX = fillCoords[0];
+            const sY = fillCoords[1];
+            ctx.fillRect(
+              sX - POINTS_BLOCK_RADIUS - 0.5,
+              sY - POINTS_BLOCK_RADIUS - 0.5,
+              POINTS_BLOCK_RADIUS * 2,
+              POINTS_BLOCK_RADIUS * 2
+            );
+          });
       }
     }
   };

@@ -15,7 +15,7 @@ const Button = (props) => {
   }, [props.disable]);
 
   const componentOnClick = (evt) => {
-    evt.preventDefault();
+    evt.stopPropagation();
 
     if (typeof props.onClick === 'function' && !disableClick && !isLoading)
       props.onClick(evt);

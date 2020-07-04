@@ -122,4 +122,14 @@ export default {
       window.ipc.send('main:sendMixer', { key: 'paintImage', value: true });
     }
   },
+
+  setInspect: (AppManager) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      const value = cloneObject(AppManager.state.inspect);
+      if (!value) return;
+
+      window.ipc.send('main:sendMixer', { key: 'setInspect', value });
+    }
+  },
 };

@@ -5,13 +5,16 @@ import i18n from 'src/locales';
 import Button from 'src/components/button';
 import Dropdown from 'src/components/dropdown';
 import Logger from 'src/lib/Logger';
-import { withGlobalSettings } from 'src/app-manager/Context';
 import { withProjectSettings } from 'src/project-manager/Context';
 import { withModalSettings } from 'src/modal-manager/Context';
 import { debounce, cloneObject } from 'src/helpers/util';
 import AppLoader from 'src/components/app-loader';
 import TextInput from 'src/components/text-input';
-import { USER_CONFIG_FILES_DEFAULT } from 'src/constants/App';
+import {
+  USER_CONFIG_FILES_DEFAULT,
+  DEFAULT_REGION_INSPECT,
+  DEFAULT_SEGMENTATION_INSPECT,
+} from 'src/constants/App';
 import ClearFiles from 'src/components/modals/clear-files';
 
 const OUTPUT_MORE_RIGHT_PANEL = {
@@ -271,6 +274,9 @@ class RightPanel extends Component {
         const { userConfig } = this.props;
         const dataJSON = JSON.parse(evt.target.getAttribute('data'));
         const files = cloneObject(userConfig.files);
+        const inspect = cloneObject(this.props.inspect);
+        inspect.region = { ...DEFAULT_REGION_INSPECT };
+        inspect.segmentation = { ...DEFAULT_SEGMENTATION_INSPECT };
 
         if (
           files.active &&
@@ -280,6 +286,7 @@ class RightPanel extends Component {
           return;
 
         files.active = dataJSON;
+        await this.props.setGlobalState('inspect', inspect);
         await this.props.setUserConfig('files', files, 'setActiveFile');
       } catch (err) {
         Logger.error(`Selecting a file : ${err.message}`);
@@ -522,6 +529,4 @@ class RightPanel extends Component {
   }
 }
 
-export default withGlobalSettings(
-  withProjectSettings(withModalSettings(RightPanel))
-);
+export default withProjectSettings(withModalSettings(RightPanel));
