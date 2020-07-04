@@ -36,7 +36,8 @@ export default class AppManager extends Component {
     mixerDOM: null,
 
     /**
-     * Considered global states below
+     * Considered global states below.
+     * Can be modified via `setGlobalState` function
      */
     activeAnnotation: null,
     inspect: {

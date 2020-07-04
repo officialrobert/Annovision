@@ -167,6 +167,7 @@ class BottomBar extends Component {
           </div>
 
           <div className={cx(styles.center_vertical_row, styles.traverse)}>
+            <p className={styles.title}>{i18n('regions_title')} </p>
             <Button
               forCancel={false}
               className={cx(styles.center_vertical_row, styles.prev)}

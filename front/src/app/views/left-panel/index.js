@@ -5,6 +5,7 @@ import styles from './LeftPanel.scss';
 import Button from 'src/components/button';
 import RadioSelect from 'src/components/radio-select';
 import Logger from 'src/lib/Logger';
+import { withGlobalSettings } from 'src/app-manager/Context';
 import { withProjectSettings } from 'src/project-manager/Context';
 import { withModalSettings } from 'src/modal-manager/Context';
 import {
@@ -12,13 +13,13 @@ import {
   TASK_TYPES,
   CLASSIFICATION_TASK,
   REGION_BASED_TASK,
+  SEGMENTATION_TASK,
 } from 'src/constants/App';
 import ProjectExpand from 'src/components/modals/project-expand';
 import DeleteProject from 'src/components/modals/delete-project';
 import CommonMessage from 'src/components/modals/common-message';
 import CreateProject from 'src/components/modals/create-project';
 import TaskSetup from './TaskSetup';
-import { SEGMENTATION_TASK } from '../../../constants/App';
 
 class LeftPanel extends Component {
   wrap = null;
@@ -223,4 +224,6 @@ class LeftPanel extends Component {
   }
 }
 
-export default withProjectSettings(withModalSettings(LeftPanel));
+export default withGlobalSettings(
+  withProjectSettings(withModalSettings(LeftPanel))
+);

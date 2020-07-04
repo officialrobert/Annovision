@@ -51,12 +51,9 @@ class CreateProject extends Component {
     if (!evt) return;
 
     const elem = evt.target;
-    if (elem.classList.contains(this.CREATE_PROJECT_CLASS_NAME)) this.doClose();
+    if (elem.classList.contains(this.CREATE_PROJECT_CLASS_NAME))
+      this.props.close();
   };
-
-  doClose = debounce(() => {
-    this.props.close();
-  }, 200);
 
   onProjectInput = (evt) => {
     if (!evt) return;
@@ -121,7 +118,7 @@ class CreateProject extends Component {
             permanent: false,
             numFiles: 0,
           };
-          await this.props.addProject(projectData);
+          await this.props.addProject({ ...projectData });
         } else {
           err = true;
         }

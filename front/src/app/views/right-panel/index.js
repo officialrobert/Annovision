@@ -5,6 +5,7 @@ import i18n from 'src/locales';
 import Button from 'src/components/button';
 import Dropdown from 'src/components/dropdown';
 import Logger from 'src/lib/Logger';
+import { withGlobalSettings } from 'src/app-manager/Context';
 import { withProjectSettings } from 'src/project-manager/Context';
 import { withModalSettings } from 'src/modal-manager/Context';
 import { debounce, cloneObject } from 'src/helpers/util';
@@ -529,4 +530,6 @@ class RightPanel extends Component {
   }
 }
 
-export default withProjectSettings(withModalSettings(RightPanel));
+export default withGlobalSettings(
+  withProjectSettings(withModalSettings(RightPanel))
+);

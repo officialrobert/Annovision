@@ -4,7 +4,6 @@ import styles from './ProjectExpand.scss';
 import Button from 'src/components/button';
 import i18n from 'src/locales';
 import { withProjectSettings } from 'src/project-manager/Context';
-import { debounce } from 'src/helpers/util';
 import Logger from 'src/lib/Logger';
 import AppLoader from 'src/components/app-loader';
 
@@ -26,12 +25,8 @@ class ProjectExpand extends Component {
     const elem = evt.target;
 
     if (elem.classList.contains(this.PROJ_EXP_AREA_CLASSNAME))
-      this.forceClose();
+      this.props.close();
   };
-
-  forceClose = debounce(() => {
-    if (!this.props.changingProject) this.props.close();
-  }, 250);
 
   componentWillUnmount() {
     this.setState({ state: false });
@@ -69,7 +64,7 @@ class ProjectExpand extends Component {
         )}
       >
         <div>
-          <Button className={styles.close} onClick={this.forceClose}>
+          <Button className={styles.close} onClick={this.props.close}>
             <p>{i18n('close_title')}</p>
           </Button>
           <ul onClick={this.onChangeProject}>

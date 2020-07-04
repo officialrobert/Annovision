@@ -491,12 +491,6 @@ class ProjectManager extends Component {
           fetchProjectFiles: this.fetchProjectFiles,
           clearAllFiles: this.clearAllFiles,
           setupProjectTask: this.setupProjectTask,
-
-          /**
-           * `ProjectManager` also consumes `AppManager`'s props.
-           *
-           */
-          ...this.props,
         }}
       >
         {this.props.children}
