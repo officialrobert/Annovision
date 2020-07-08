@@ -64,16 +64,16 @@ export default class Mixer extends Component {
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.globalAlpha = 1;
     ctx.closePath();
-
     c.setAttribute('width', active.canvasW);
     c.setAttribute('height', active.canvasH);
     ctx.drawImage(
       this.IMG_DOM,
       active.offsetLeft,
       active.offsetTop,
-      active.width,
-      active.height
+      active.width * active.zoom,
+      active.height * active.zoom
     );
+
     this.repaintOnMain();
   };
 
@@ -125,7 +125,7 @@ export default class Mixer extends Component {
     const ctx = c.getContext('2d');
 
     if (!task || !mounted || !active) return;
-    const { offsetLeft, offsetTop } = active;
+    const { offsetLeft, offsetTop, zoom } = active;
 
     ctx.lineWidth = '8';
     ctx.strokeStyle = '#4464e4';
@@ -136,12 +136,15 @@ export default class Mixer extends Component {
 
       if (cReg.region_attr.name === REGION_BOUNDINGBOX_NAME) {
         const sX =
-          cReg.shape_attr.topLeftX * (active.width / region.width) + offsetLeft;
+          offsetLeft +
+          cReg.shape_attr.topLeftX * (active.width / region.width) * zoom;
         const sY =
-          cReg.shape_attr.topLeftY * (active.height / region.height) +
-          offsetTop;
-        const width = cReg.shape_attr.width * (active.width / region.width);
-        const height = cReg.shape_attr.height * (active.height / region.height);
+          offsetTop +
+          cReg.shape_attr.topLeftY * (active.height / region.height) * zoom;
+        const width =
+          cReg.shape_attr.width * zoom * (active.width / region.width);
+        const height =
+          cReg.shape_attr.height * zoom * (active.height / region.height);
 
         ctx.beginPath();
         ctx.globalAlpha = 1;

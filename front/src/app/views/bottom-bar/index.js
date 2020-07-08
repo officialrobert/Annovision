@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, { Component, createRef, cloneElement } from 'react';
 import cx from 'classnames';
 import { withGlobalSettings } from 'src/app-manager/Context';
 import styles from './BottomBar.scss';
@@ -15,6 +15,7 @@ import Button from 'src/components/button';
 import { withModalSettings } from 'src/modal-manager/Context';
 import ClassificationClasses from 'src/components/modals/classification-classes';
 import Checkbox from 'src/components/check-box';
+import InlineSVG from 'src/components/inline-svg';
 
 class BottomBar extends Component {
   taskActionsRef = null;
@@ -73,7 +74,10 @@ class BottomBar extends Component {
       const { userConfig } = this.props;
       const task = cloneObject(userConfig.task);
       const opt = evt.target.getAttribute('data');
-      task.opt = opt;
+
+      if (task.opt && task.opt === opt) {
+        delete task.opt;
+      } else task.opt = opt;
 
       this.props.setUserConfig('task', task);
     }
@@ -108,6 +112,13 @@ class BottomBar extends Component {
     await this.props.setGlobalState('inspect', inspect, 'setInspect');
   };
 
+  toggleModeAndDrag = async () => {
+    await this.props.setGlobalState(
+      'moveAndDrag',
+      this.props.moveAndDrag ? false : true
+    );
+  };
+
   getTaskActions = () => {
     const { userConfig } = this.props;
     const { task } = userConfig;
@@ -125,7 +136,9 @@ class BottomBar extends Component {
 
               if (userConfig.files.active && activeAnnotation) {
                 this.props.setDOM(
-                  <ClassificationClasses close={this.props.deactivateModal} />
+                  cloneElement(
+                    <ClassificationClasses close={this.props.deactivateModal} />
+                  )
                 );
                 this.props.activateModal();
               }
@@ -196,7 +209,7 @@ class BottomBar extends Component {
   };
 
   render() {
-    const { inspect } = this.props;
+    const { inspect, moveAndDrag } = this.props;
     const { rightPanel, leftPanel } = this.state;
 
     return (
@@ -204,9 +217,6 @@ class BottomBar extends Component {
         <div className={cx(styles.center_vertical_row, styles.common_actions)}>
           <div className={styles.save}>
             <p> {i18n('save_title')}</p>
-          </div>
-          <div className={styles.clear}>
-            <p>{i18n('clear_title')}</p>
           </div>
           <div className={cx(styles.center_vertical_row, styles.inspectmode)}>
             <Checkbox
@@ -217,6 +227,16 @@ class BottomBar extends Component {
             <p className={cx(styles.center_vertical_row, styles.title)}>
               {i18n('inspect_mode_title')}
             </p>
+          </div>
+          <div
+            onClick={this.toggleModeAndDrag}
+            className={cx(styles.center_vertical_row, styles.dragmode, {
+              [styles.isActive]: moveAndDrag,
+            })}
+          >
+            <div className={styles.ic}>
+              <InlineSVG name={'Drag'} svgWidth={'17'} svgHeight={'17'} />
+            </div>
           </div>
         </div>
         <div

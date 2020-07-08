@@ -3,6 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath');
+const { resolve } = require('path');
 
 // Make sure any symlinks in the project folder are resolved:
 // https://github.com/facebook/create-react-app/issues/637
@@ -65,6 +66,7 @@ module.exports = {
   proxySetup: resolveApp('src/setupProxy.js'),
   appNodeModules: resolveApp('node_modules'),
   appJSON: resolveApp('front.json'),
+  appAssetsSVG: resolve('src/assets/svg'),
   publicUrlOrPath,
 };
 

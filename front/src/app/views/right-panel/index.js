@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, { Component, createRef, cloneElement } from 'react';
 import styles from './RightPanel.scss';
 import cx from 'classnames';
 import i18n from 'src/locales';
@@ -189,10 +189,12 @@ class RightPanel extends Component {
     if (importingFiles || !mounted || removingFiles) return;
 
     this.props.setDOM(
-      <ClearFiles
-        close={this.props.deactivateModal}
-        confirm={this.confirmClearFiles}
-      />
+      cloneElement(
+        <ClearFiles
+          close={this.props.deactivateModal}
+          confirm={this.confirmClearFiles}
+        />
+      )
     );
     this.props.activateModal();
   };

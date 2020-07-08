@@ -74,8 +74,7 @@
     height: 100%;
     overflow: hidden;
 
-    .save,
-    .clear {
+    .save {
       position: relative;
       padding: 5px 8px;
       cursor: pointer;
@@ -98,6 +97,7 @@
       .cb {
         height: 12px;
         width: 12px;
+        margin-bottom: 1px;
         margin-right: 5px;
       }
 
@@ -108,8 +108,21 @@
       }
     }
 
-    .clear {
-      margin-left: 2px;
+    .isActive {
+      background: $app_lightgray;
+    }
+
+    .dragmode {
+      position: relative;
+      margin-left: 5px;
+      padding: 5px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+
+      .ic {
+        height: 18px;
+        width: 18px;
+      }
     }
   }
 
@@ -191,10 +204,10 @@
           border-radius: 5px;
 
           &:hover {
-            background: $app_gray;
+            background: $app_lightgray;
 
             & > span:nth-child(1) {
-              background: $app_gray;
+              background: $app_lightgray;
             }
           }
 
@@ -207,10 +220,10 @@
         }
 
         .selected {
-          background: $app_gray;
+          background: $app_lightgray;
 
           & > span:nth-child(1) {
-            background: $app_gray;
+            background: $app_lightgray;
           }
         }
 
@@ -232,7 +245,11 @@
           margin-left: 5px;
 
           &:hover {
-            background: $app_gray;
+            background: $app_lightgray;
+
+            & > span:nth-child(1) {
+              background: $app_lightgray;
+            }
           }
 
           & > span:nth-child(1) {

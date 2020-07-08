@@ -24,7 +24,10 @@ class ProjectExpand extends Component {
     if (!evt) return;
     const elem = evt.target;
 
-    if (elem.classList.contains(this.PROJ_EXP_AREA_CLASSNAME))
+    if (
+      elem.classList.contains(this.PROJ_EXP_AREA_CLASSNAME) &&
+      !this.props.changingProject
+    )
       this.props.close();
   };
 

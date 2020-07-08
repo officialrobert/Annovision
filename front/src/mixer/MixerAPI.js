@@ -2,9 +2,9 @@ import {
   REGION_BOUNDINGBOX_NAME,
   REGION_POLYGON_NAME,
   POINTS_BLOCK_RADIUS,
-  CLASSIFICATION_TASK,
   REGION_BASED_TASK,
 } from 'src/constants/App';
+import { cloneObject } from 'src/helpers/util';
 
 export default {
   viewFile: async (Mixer, value) => {
@@ -46,17 +46,61 @@ export default {
     }
   },
 
+  setFileZoom: async (Mixer, zoom) => {
+    if (Mixer) {
+      const { files, task } = Mixer.state;
+      if (files.active && task) {
+        const active = cloneObject(files.active);
+        active.zoom = zoom;
+        await Mixer.setStateAsync({
+          files: { ...Mixer.state.files, active },
+        });
+
+        Mixer.paintActiveFile();
+        if (task.key === REGION_BASED_TASK.key) {
+          Mixer.paintRegionBased();
+        }
+
+        Mixer.repaintOnMain();
+      }
+    }
+  },
+
+  setFileOffset: async (Mixer, { offsetTop, offsetLeft }) => {
+    if (Mixer) {
+      const { files, task } = Mixer.state;
+      if (files.active && task) {
+        const active = cloneObject(files.active);
+        active.offsetLeft = offsetLeft;
+        active.offsetTop = offsetTop;
+
+        await Mixer.setStateAsync({
+          files: { ...Mixer.state.files, active },
+        });
+
+        Mixer.paintActiveFile();
+        if (task.key === REGION_BASED_TASK.key) {
+          Mixer.paintRegionBased();
+        }
+
+        Mixer.repaintOnMain();
+      }
+    }
+  },
+
   paintAnnnotations: async (Mixer, activeAnnotation = null, { task }) => {
-    if (!Mixer || task.key === CLASSIFICATION_TASK.key) return;
-    else if (activeAnnotation) Mixer.activeAnnotation = activeAnnotation;
+    if (activeAnnotation) {
+      Mixer.activeAnnotation = activeAnnotation;
 
-    await Mixer.setStateAsync({
-      task,
-    });
+      await Mixer.setStateAsync({
+        task,
+      });
 
-    Mixer.paintActiveFile();
-    if (task.key === REGION_BASED_TASK.key) {
-      Mixer.paintRegionBased();
+      Mixer.paintActiveFile();
+      if (task.key === REGION_BASED_TASK.key) {
+        Mixer.paintRegionBased();
+      }
+
       Mixer.repaintOnMain();
     }
   },
@@ -184,7 +228,8 @@ export default {
     Mixer.paintActiveFile();
     if (task.key === REGION_BASED_TASK.key) {
       Mixer.paintRegionBased();
-      Mixer.repaintOnMain();
     }
+
+    Mixer.repaintOnMain();
   },
 };

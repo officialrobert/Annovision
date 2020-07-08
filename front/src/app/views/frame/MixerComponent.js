@@ -8,17 +8,21 @@ import {
   CLASSIFICATION_TASK,
   REGION_BASED_TASK,
   REGION_POLYGON_NAME,
+  ZOOM_RANGE,
 } from 'src/constants/App';
+import { cloneObject } from 'src/helpers/util';
 
 class MixerComponent extends Component {
   canvasRef = null;
   enablePaint = false;
   points = { start: [], cont: [], stop: [] };
   onFrameFlag = false;
+  displacement = { from: [] };
 
   state = {
     mounted: false,
     hasDrag: false,
+    hasMove: false,
   };
 
   constructor() {
@@ -48,8 +52,12 @@ class MixerComponent extends Component {
 
     this.canvasRef = null;
     this.points = null;
+    this.displacement = null;
+
     window.Mousetrap.unbind('esc', 'keyup');
     window.Mousetrap.unbind('space', 'keyup');
+    window.Mousetrap.unbind('ctrl+up');
+    window.Mousetrap.unbind('ctrl+down');
   }
 
   handleReceive = async (evt, { key, value }) => {
@@ -62,7 +70,54 @@ class MixerComponent extends Component {
   mainOnMount = () => {
     window.Mousetrap.bind('esc', this.doCancel, 'keyup');
     window.Mousetrap.bind('space', this.doSave, 'keyup');
+    window.Mousetrap.bind('ctrl+up', this.onZoomIn);
+    window.Mousetrap.bind('ctrl+down', this.onZoomout);
     requestAnimationFrame(this.doPaint);
+  };
+
+  onZoomIn = async () => {
+    const { userConfig } = this.props;
+    const files = cloneObject(userConfig.files);
+
+    if (!files.active || !files.active.fit) return;
+    else if (files.active.fit.zoom) {
+      if (
+        files.active.fit.zoom < ZOOM_RANGE.max &&
+        files.active.fit.zoom >= ZOOM_RANGE.min
+      )
+        files.active.fit.zoom = Number(
+          (parseFloat(files.active.fit.zoom) + 0.2).toFixed(2)
+        );
+    }
+
+    await this.props.setUserConfig('files', files, 'setFileZoom');
+  };
+
+  onZoomout = async () => {
+    const { userConfig } = this.props;
+    const files = cloneObject(userConfig.files);
+    let resetOffset = false;
+
+    if (!files.active || !files.active.fit) return;
+    else if (files.active.fit.zoom) {
+      if (
+        files.active.fit.zoom <= ZOOM_RANGE.max &&
+        files.active.fit.zoom > ZOOM_RANGE.min
+      )
+        files.active.fit.zoom = Number(
+          (parseFloat(files.active.fit.zoom) - 0.2).toFixed(2)
+        );
+
+      if (files.active.fit.zoom === 1) {
+        files.active.fit.offsetLeft = 0;
+        files.active.fit.offsetTop = 0;
+        resetOffset = true;
+      }
+    }
+
+    await this.props.setUserConfig('files', files, 'setFileZoom');
+    if (resetOffset)
+      await this.props.setUserConfig('files', files, 'setFileOffset');
   };
 
   doCancel = () => {
@@ -118,19 +173,11 @@ class MixerComponent extends Component {
   };
 
   startDrag = (evt) => {
-    if (!evt) return;
-    const { userConfig } = this.props;
-    const { task, files } = userConfig;
+    const { userConfig, moveAndDrag } = this.props;
+    const { task } = userConfig;
+    const files = cloneObject(userConfig.files);
 
-    if (task.key === CLASSIFICATION_TASK.key || !files.active) {
-      if (this.state.hasDrag) {
-        this.points = { start: [], cont: [], stop: [] };
-        this.setState({
-          hasDrag: false,
-        });
-      }
-      return;
-    }
+    if (!evt || !files.active || !files.active.fit) return;
 
     const { clientX, clientY } = evt;
     const { realX, realY } = this.getCoords(clientX, clientY);
@@ -138,6 +185,21 @@ class MixerComponent extends Component {
 
     if (isBeyondNotAllowed) {
       return;
+    } else if (moveAndDrag) {
+      const { offsetLeft, offsetTop } = files.active.fit;
+      this.displacement.from = [
+        { dX: realX - offsetLeft, dY: realY - offsetTop },
+      ];
+      this.setState({
+        hasMove: true,
+      });
+    } else if (task.key === CLASSIFICATION_TASK.key) {
+      if (this.state.hasDrag) {
+        this.points = { start: [], cont: [], stop: [] };
+        this.setState({
+          hasDrag: false,
+        });
+      }
     } else if (task.key === REGION_BASED_TASK.key) {
       if (this.points.start.length > 0) {
         const startLatestL = this.points.start.length - 1;
@@ -168,10 +230,23 @@ class MixerComponent extends Component {
 
   endDrag = (evt) => {
     if (!evt) return;
+    const { hasMove } = this.state;
     const { userConfig } = this.props;
     const { task, files } = userConfig;
 
-    if (
+    if (hasMove) {
+      this.setState(
+        {
+          hasMove: false,
+        },
+        async () => {
+          const files = cloneObject(userConfig.files);
+          await this.props.setUserConfig('files', files, 'setFileOffset');
+          this.displacement.from = [];
+        }
+      );
+      return;
+    } else if (
       task.key === CLASSIFICATION_TASK.key ||
       !files.active ||
       this.points.start.length <= 0 ||
@@ -188,8 +263,8 @@ class MixerComponent extends Component {
 
     const { clientX, clientY } = evt;
     const { realX, realY } = this.getCoords(clientX, clientY);
-    const continueDragging = !(task.opt === REGION_BOUNDINGBOX_NAME);
     this.points.stop = [{ eX: realX, eY: realY }];
+    const continueDragging = !(task.opt === REGION_BOUNDINGBOX_NAME);
     this.setState(
       {
         hasDrag: continueDragging,
@@ -200,7 +275,6 @@ class MixerComponent extends Component {
 
         if (task.opt === REGION_BOUNDINGBOX_NAME) {
           await this.props.storeAnnoRegionBased({ ...this.points });
-          this.points = { start: [], cont: [], stop: [] };
         }
       }
     );
@@ -222,6 +296,12 @@ class MixerComponent extends Component {
         hasDrag: false,
       });
     }
+
+    if (this.state.hasMove) {
+      this.setState({
+        hasMove: false,
+      });
+    }
   };
 
   onFrame = () => {
@@ -240,25 +320,29 @@ class MixerComponent extends Component {
     }
   };
 
-  contDrag = (evt) => {
-    const { userConfig } = this.props;
-    const { hasDrag } = this.state;
+  contDrag = async (evt) => {
+    const { userConfig, dragAndMoveFile } = this.props;
+    const { hasDrag, hasMove } = this.state;
     const { task, files } = userConfig;
 
-    if (
-      !evt ||
-      !hasDrag ||
-      !this.onFrameFlag ||
-      !this.points ||
-      !files.active
-    ) {
-      return;
-    }
-
+    if (!evt || !files.active || !files.active.fit) return;
     const { clientX, clientY } = evt;
+    const { realX, realY } = this.getCoords(clientX, clientY);
+
+    if (hasMove) {
+      const dX = this.displacement.from[0].dX;
+      const dY = this.displacement.from[0].dY;
+      const offsetLeft = realX - dX;
+      const offsetTop = realY - dY;
+
+      files.active.fit.offsetLeft = offsetLeft;
+      files.active.fit.offsetTop = offsetTop;
+      dragAndMoveFile({ ...files });
+      return;
+    } else if (!hasDrag || !this.onFrameFlag || !this.points) return;
     const startLatestL = this.points.start.length - 1;
     const { sX, sY } = this.points.start[startLatestL];
-    const { realX, realY } = this.getCoords(clientX, clientY);
+
     let height = 0;
     let width = 0;
     const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
@@ -286,12 +370,21 @@ class MixerComponent extends Component {
   isBeyondImageDims = (realX, realY) => {
     const { userConfig } = this.props;
     const { files } = userConfig;
-    if (!files.active) return;
+    if (!files.active || !files.active.fit) return;
     let isBeyond = false;
-    const { offsetLeft, offsetTop, availWidth, availHeight } = files.active.fit;
+    const {
+      offsetLeft,
+      offsetTop,
+      availWidth,
+      availHeight,
+      zoom,
+    } = files.active.fit;
 
     if (realX < offsetLeft || realY < offsetTop) isBeyond = true;
-    else if (realX > offsetLeft + availWidth || realY > offsetTop + availHeight)
+    else if (
+      realX > offsetLeft + availWidth * zoom ||
+      realY > offsetTop + availHeight * zoom
+    )
       isBeyond = true;
     return isBeyond;
   };
@@ -299,7 +392,7 @@ class MixerComponent extends Component {
   getCoords = (clientX, clientY) => {
     const { frameStyle, mixerWrapStyle, mixerStyle, userConfig } = this.props;
     const { files } = userConfig;
-    if (!files.active) return;
+    if (!files.active || !files.active.fit) return;
     const { canvasW, canvasH } = files.active.fit;
 
     let realX = Math.ceil(
@@ -337,6 +430,7 @@ class MixerComponent extends Component {
     }
 
     requestAnimationFrame(this.doPaint);
+
     return (
       <section
         style={{ height: `${height}px`, width: `${width}px` }}

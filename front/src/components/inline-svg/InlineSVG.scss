@@ -1,0 +1,18 @@
+.inlinesvg {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  & > span {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: block;
+    background-size: 100% 100%;
+    background-position: center;
+  }
+}

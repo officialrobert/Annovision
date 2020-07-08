@@ -82,3 +82,5 @@ export const AVAIL_COLORS_SEGMENTATION = [
 export const DEFAULT_REGION_INSPECT = { active: 0 };
 
 export const DEFAULT_SEGMENTATION_INSPECT = { active: 0 };
+
+export const ZOOM_RANGE = { max: 3, min: 1 };

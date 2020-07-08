@@ -45,6 +45,7 @@ export default class AppManager extends Component {
       segmentation: { ...DEFAULT_SEGMENTATION_INSPECT },
       isOn: false,
     },
+    moveAndDrag: false,
   };
 
   constructor() {
@@ -222,13 +223,17 @@ export default class AppManager extends Component {
     if (fnAPI) {
       const cb = API[fnAPI];
       if (typeof cb === 'function') {
-        const respond = await cb(this);
+        const respond = await cb(this, value);
         if (verbose)
           Logger.log(`AppManager API fn - ${fnAPI} w/ result - ${respond}`);
       }
     }
 
-    window.ipc.send('main:saveUserConfig', this.state.userConfig);
+    let saveWithIPC = debounce(() => {
+      window.ipc.send('main:saveUserConfig', this.state.userConfig);
+    }, 200);
+
+    saveWithIPC();
   };
 
   showDirectory = (dirName = '') => {
@@ -248,23 +253,23 @@ export default class AppManager extends Component {
   };
 
   getImageMaxSizeContain = (width, height) => {
-    let zoom = 1;
+    let localzoom = 1;
     let availWidth = width;
     let availHeight = height;
     const maxResolution = { ...SUPPORTED_FILE_RESOLUTION_IN_KEYS['1080p'] }; // 1080p max support for now
 
     while (true) {
-      zoom += 1;
-      availHeight = height * zoom;
-      availWidth = width * zoom;
+      localzoom += 1;
+      availHeight = height * localzoom;
+      availWidth = width * localzoom;
 
       if (
         availHeight > maxResolution.height ||
         availWidth > maxResolution.width
       ) {
-        zoom -= 1;
-        availHeight = height * zoom;
-        availWidth = width * zoom;
+        localzoom -= 1;
+        availHeight = height * localzoom;
+        availWidth = width * localzoom;
         break;
       }
     }
@@ -274,8 +279,9 @@ export default class AppManager extends Component {
       availWidth,
       canvasW: maxResolution.width,
       canvasH: maxResolution.height,
-      offsetLeft: Math.floor((maxResolution.width - availWidth) / 2),
-      offsetTop: Math.floor((maxResolution.height - availHeight) / 2),
+      offsetLeft: 0,
+      offsetTop: 0,
+      zoom: 1,
     };
   };
 
@@ -398,7 +404,7 @@ export default class AppManager extends Component {
     const { userConfig } = this.state;
     const { task, files } = userConfig;
     const { active } = files;
-    const { offsetLeft, offsetTop, availHeight, availWidth } = active.fit;
+    const { offsetLeft, offsetTop, availHeight, availWidth, zoom } = active.fit;
 
     if (!points.cont.length || this.storingRegionBased) return;
 
@@ -408,14 +414,19 @@ export default class AppManager extends Component {
       const { height, width, pX, pY } = points.cont[0];
       let { sX, sY } = points.start[0];
       const shape_attr = {
-        height: height * (active.height / availHeight),
-        width: width * (active.width / availWidth),
+        height: Math.floor((height / zoom) * (active.height / availHeight)),
+        width: Math.floor((width / zoom) * (active.width / availWidth)),
       };
+
       sX = sX > pX ? pX : sX;
       sY = sY > pY ? pY : sY;
 
-      shape_attr.topLeftX = (sX - offsetLeft) * (active.width / availWidth);
-      shape_attr.topLeftY = (sY - offsetTop) * (active.height / availHeight);
+      shape_attr.topLeftX = Math.floor(
+        ((sX - offsetLeft) * (active.width / availWidth)) / zoom
+      );
+      shape_attr.topLeftY = Math.floor(
+        ((sY - offsetTop) * (active.height / availHeight)) / zoom
+      );
 
       await this.setAnnotation(task.key, {
         shape_attr,
@@ -423,6 +434,7 @@ export default class AppManager extends Component {
         type: 'insert',
         region_attr: { name: REGION_BOUNDINGBOX_NAME },
       });
+
       // redraw
     } else if (task.opt === REGION_POLYGON_NAME) {
       const shape_attr = {
@@ -487,9 +499,13 @@ export default class AppManager extends Component {
       const cb = API[`${fn}`];
 
       if (typeof cb === 'function') {
-        await cb(this);
+        await cb(this, value);
       }
     }
+  };
+
+  dragAndMoveFile = (files) => {
+    API['setFileOffset'](this, files);
   };
 
   render() {
@@ -514,6 +530,8 @@ export default class AppManager extends Component {
             storeAnnoRegionBased: this.storeAnnoRegionBased,
             repaintMixer: this.repaintMixer,
             setGlobalState: this.setGlobalState,
+            beginDisplacement: this.beginDisplacement,
+            dragAndMoveFile: this.dragAndMoveFile,
           }}
         >
           {loaded && mounted && this.props.children}

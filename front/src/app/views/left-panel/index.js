@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, { Component, createRef, cloneElement } from 'react';
 import cx from 'classnames';
 import i18n from 'src/locales';
 import styles from './LeftPanel.scss';
@@ -80,7 +80,9 @@ class LeftPanel extends Component {
 
   projectsExpand = () => {
     this.props.deactivateModal();
-    this.props.setDOM(<ProjectExpand close={this.props.deactivateModal} />);
+    this.props.setDOM(
+      cloneElement(<ProjectExpand close={this.props.deactivateModal} />)
+    );
     this.props.activateModal();
   };
 
@@ -93,17 +95,21 @@ class LeftPanel extends Component {
       userConfig.selectedProject.permanent !== 'false'
     ) {
       this.props.setDOM(
-        <CommonMessage
-          message={i18n('default_project_permanent')}
-          close={this.props.deactivateModal}
-        />
+        cloneElement(
+          <CommonMessage
+            message={i18n('default_project_permanent')}
+            close={this.props.deactivateModal}
+          />
+        )
       );
     } else {
       this.props.setDOM(
-        <DeleteProject
-          close={this.props.deactivateModal}
-          confirm={this.confirmDeleteProject}
-        />
+        cloneElement(
+          <DeleteProject
+            close={this.props.deactivateModal}
+            confirm={this.confirmDeleteProject}
+          />
+        )
       );
     }
 
@@ -112,7 +118,9 @@ class LeftPanel extends Component {
 
   createProjectShow = () => {
     this.props.deactivateModal();
-    this.props.setDOM(<CreateProject close={this.props.deactivateModal} />);
+    this.props.setDOM(
+      cloneElement(<CreateProject close={this.props.deactivateModal} />)
+    );
     this.props.activateModal();
   };
 

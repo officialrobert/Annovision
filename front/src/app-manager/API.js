@@ -2,8 +2,8 @@ import Logger from 'src/lib/Logger';
 import { cloneObject } from 'src/helpers/util';
 
 export default {
-  setActiveFile: async (AppManager, type = 'image') => {
-    const files = cloneObject(AppManager.state.userConfig.files);
+  setActiveFile: async (AppManager, value, type = 'image') => {
+    const files = cloneObject(AppManager.state.userConfig.files || value);
     const { active } = files;
 
     if (type === 'image' && active) {
@@ -30,7 +30,8 @@ export default {
         );
         return;
       }
-      files.active.fit = fit;
+
+      active.fit = fit;
       await AppManager.setUserConfig('files', files);
 
       if (AppManager.mixerReady)
@@ -45,6 +46,7 @@ export default {
             offsetTop: fit.offsetTop,
             canvasH,
             canvasW,
+            zoom: fit.zoom,
           },
         });
 
@@ -53,7 +55,7 @@ export default {
   },
 
   setTask: (AppManager, task) => {
-    if (!AppManager.mixerReady) {
+    if (AppManager.mixerReady) {
       window.ipc.send('main:sendMixer', {
         key: 'setTask',
         value: task,
@@ -102,6 +104,8 @@ export default {
   paintFileAnnotations: (AppManager) => {
     if (!AppManager) return;
     else if (AppManager.mixerReady) {
+      Logger.log('Painting file annotations');
+
       const { userConfig } = AppManager.state;
       const active = cloneObject(userConfig.files.active);
       const task = cloneObject(userConfig.task);
@@ -130,6 +134,28 @@ export default {
       if (!value) return;
 
       window.ipc.send('main:sendMixer', { key: 'setInspect', value });
+    }
+  },
+
+  setFileZoom: (AppManager, files) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      const zoom = Number(files.active.fit.zoom);
+      if (!zoom) return;
+      window.ipc.send('main:sendMixer', { key: 'setFileZoom', value: zoom });
+    }
+  },
+
+  setFileOffset: (AppManager, files) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      const offsetLeft = Number(files.active.fit.offsetLeft);
+      const offsetTop = Number(files.active.fit.offsetTop);
+
+      window.ipc.send('main:sendMixer', {
+        key: 'setFileOffset',
+        value: { offsetLeft, offsetTop },
+      });
     }
   },
 };
