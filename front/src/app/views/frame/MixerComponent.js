@@ -182,24 +182,32 @@ class MixerComponent extends Component {
     const { clientX, clientY } = evt;
     const { realX, realY } = this.getCoords(clientX, clientY);
     const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
+    const { offsetLeft, offsetTop, zoom } = files.active.fit;
 
     if (isBeyondNotAllowed) {
       return;
-    } else if (moveAndDrag) {
-      const { offsetLeft, offsetTop } = files.active.fit;
+    }
+
+    if (task.key === CLASSIFICATION_TASK.key) {
+      if (this.state.hasDrag) {
+        this.setState({
+          hasDrag: false,
+        });
+      }
+
+      if (this.points.start.length > 0) {
+        this.points.start = [];
+        this.points.cont = [];
+      }
+    }
+
+    if (moveAndDrag) {
       this.displacement.from = [
         { dX: realX - offsetLeft, dY: realY - offsetTop },
       ];
       this.setState({
         hasMove: true,
       });
-    } else if (task.key === CLASSIFICATION_TASK.key) {
-      if (this.state.hasDrag) {
-        this.points = { start: [], cont: [], stop: [] };
-        this.setState({
-          hasDrag: false,
-        });
-      }
     } else if (task.key === REGION_BASED_TASK.key) {
       if (this.points.start.length > 0) {
         const startLatestL = this.points.start.length - 1;
@@ -209,11 +217,21 @@ class MixerComponent extends Component {
       }
 
       if (task.opt === REGION_BOUNDINGBOX_NAME) {
-        this.points.start = [{ sX: realX, sY: realY, task }];
+        this.points.start = [
+          {
+            sX: realX,
+            sY: realY,
+            sXFit: Math.floor((realX - offsetLeft) / zoom),
+            sYFit: Math.floor((realY - offsetTop) / zoom),
+            task,
+          },
+        ];
       } else {
         this.points.start.push({
           sX: realX,
           sY: realY,
+          sXFit: Math.floor((realX - offsetLeft) / zoom),
+          sYFit: Math.floor((realY - offsetTop) / zoom),
           task,
         });
       }
@@ -240,6 +258,7 @@ class MixerComponent extends Component {
           hasMove: false,
         },
         async () => {
+          const { userConfig } = this.props;
           const files = cloneObject(userConfig.files);
           await this.props.setUserConfig('files', files, 'setFileOffset');
           this.displacement.from = [];
@@ -275,6 +294,7 @@ class MixerComponent extends Component {
 
         if (task.opt === REGION_BOUNDINGBOX_NAME) {
           await this.props.storeAnnoRegionBased({ ...this.points });
+          this.points = { start: [], cont: [], stop: [] };
         }
       }
     );
@@ -321,7 +341,7 @@ class MixerComponent extends Component {
   };
 
   contDrag = async (evt) => {
-    const { userConfig, dragAndMoveFile } = this.props;
+    const { userConfig, callAPI } = this.props;
     const { hasDrag, hasMove } = this.state;
     const { task, files } = userConfig;
 
@@ -337,34 +357,38 @@ class MixerComponent extends Component {
 
       files.active.fit.offsetLeft = offsetLeft;
       files.active.fit.offsetTop = offsetTop;
-      dragAndMoveFile({ ...files });
-      return;
+      callAPI('setFileOffset', { ...files });
     } else if (!hasDrag || !this.onFrameFlag || !this.points) return;
-    const startLatestL = this.points.start.length - 1;
-    const { sX, sY } = this.points.start[startLatestL];
 
-    let height = 0;
-    let width = 0;
-    const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
+    if (hasDrag) {
+      const startLatestL = this.points.start.length - 1;
+      const { sX, sY } = this.points.start[startLatestL];
 
-    if (isBeyondNotAllowed) {
-      this.endDrag();
-      return;
-    } else if (task.opt === REGION_BOUNDINGBOX_NAME) {
-      const hyp = Math.sqrt(Math.pow(realX - sX, 2) + Math.pow(realY - sY, 2));
-      width = Math.abs(realX - sX);
-      height = Math.floor(Math.sqrt(Math.pow(hyp, 2) - Math.pow(width, 2)));
+      let height = 0;
+      let width = 0;
+      const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
+
+      if (isBeyondNotAllowed) {
+        this.endDrag();
+        return;
+      } else if (task.opt === REGION_BOUNDINGBOX_NAME) {
+        const hyp = Math.sqrt(
+          Math.pow(realX - sX, 2) + Math.pow(realY - sY, 2)
+        );
+        width = Math.abs(realX - sX);
+        height = Math.floor(Math.sqrt(Math.pow(hyp, 2) - Math.pow(width, 2)));
+      }
+
+      this.points.cont = [
+        {
+          pX: realX,
+          pY: realY,
+          width,
+          height,
+        },
+      ];
+      this.props.contPaint([...this.points.cont]);
     }
-
-    this.points.cont = [
-      {
-        pX: realX,
-        pY: realY,
-        width,
-        height,
-      },
-    ];
-    this.props.contPaint([...this.points.cont]);
   };
 
   isBeyondImageDims = (realX, realY) => {

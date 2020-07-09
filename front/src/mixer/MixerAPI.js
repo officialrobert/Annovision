@@ -164,22 +164,26 @@ export default {
         ctx.stroke();
         ctx.fillStyle = '#4464e4';
       } else if (task.opt === REGION_POLYGON_NAME) {
+        const { files } = Mixer.state;
+        const { active } = files;
         const startLatest = Mixer.startPaintLoad.length - 1;
         const pointsLatest = Mixer.pointsPaintLoad.length - 1;
         const { pX, pY } = Mixer.pointsPaintLoad[pointsLatest];
-
         ctx.globalAlpha = 1;
         ctx.lineWidth = '8';
         ctx.strokeStyle = '#4464e4';
         ctx.fillStyle = '#cc544b';
 
         for (let index = 0; index < Mixer.startPaintLoad.length - 1; index++) {
-          const { sX, sY } = Mixer.startPaintLoad[index];
+          const { sXFit, sYFit } = Mixer.startPaintLoad[index];
+          const next = Mixer.startPaintLoad[index + 1];
+          const sX = sXFit * active.zoom + active.offsetLeft;
+          const sY = sYFit * active.zoom + active.offsetTop;
+          const nextSX = next.sXFit * active.zoom + active.offsetLeft;
+          const nextSY = next.sYFit * active.zoom + active.offsetTop;
+
           ctx.moveTo(sX, sY);
-          ctx.lineTo(
-            Mixer.startPaintLoad[index + 1].sX,
-            Mixer.startPaintLoad[index + 1].sY
-          );
+          ctx.lineTo(nextSX, nextSY);
           ctx.fillRect(
             sX - POINTS_BLOCK_RADIUS - 0.5,
             sY - POINTS_BLOCK_RADIUS - 0.5,
@@ -189,18 +193,29 @@ export default {
         }
 
         ctx.fillRect(
-          Mixer.startPaintLoad[startLatest].sX - POINTS_BLOCK_RADIUS - 0.5,
-          Mixer.startPaintLoad[startLatest].sY - POINTS_BLOCK_RADIUS - 0.5,
+          Mixer.startPaintLoad[startLatest].sXFit * active.zoom +
+            active.offsetLeft -
+            POINTS_BLOCK_RADIUS -
+            0.5,
+          Mixer.startPaintLoad[startLatest].sYFit * active.zoom +
+            active.offsetTop -
+            POINTS_BLOCK_RADIUS -
+            0.5,
           POINTS_BLOCK_RADIUS * 2,
           POINTS_BLOCK_RADIUS * 2
         );
         ctx.moveTo(
-          Mixer.startPaintLoad[startLatest].sX,
-          Mixer.startPaintLoad[startLatest].sY
+          Mixer.startPaintLoad[startLatest].sXFit * active.zoom +
+            active.offsetLeft,
+          Mixer.startPaintLoad[startLatest].sYFit * active.zoom +
+            active.offsetTop
         );
         ctx.lineTo(pX, pY);
         ctx.moveTo(pX, pY);
-        ctx.lineTo(Mixer.startPaintLoad[0].sX, Mixer.startPaintLoad[0].sY);
+        ctx.lineTo(
+          Mixer.startPaintLoad[0].sXFit * active.zoom + active.offsetLeft,
+          Mixer.startPaintLoad[0].sYFit * active.zoom + active.offsetTop
+        );
         ctx.stroke();
       }
     }

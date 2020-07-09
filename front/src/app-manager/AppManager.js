@@ -443,13 +443,13 @@ export default class AppManager extends Component {
 
       for (let index = 0; index < points.start.length; index++) {
         const cpoint = points.start[index];
-        let { sX, sY } = cpoint;
+        let { sXFit, sYFit } = cpoint;
 
         /**
          * Translate points
          */
-        sX = (sX - offsetLeft) * (active.width / availWidth);
-        sY = (sY - offsetTop) * (active.height / availHeight);
+        let sX = Math.floor(sXFit * (active.width / availWidth));
+        let sY = Math.floor(sYFit * (active.height / availHeight));
         shape_attr.vertices.push([sX, sY]); // x,y points
       }
 
@@ -504,8 +504,13 @@ export default class AppManager extends Component {
     }
   };
 
-  dragAndMoveFile = (files) => {
-    API['setFileOffset'](this, files);
+  callAPI = async (fn, value) => {
+    // call API namespace without calling setState
+    const cb = API[`${fn}`];
+
+    if (typeof cb === 'function') {
+      await cb(this, value);
+    }
   };
 
   render() {
@@ -531,7 +536,7 @@ export default class AppManager extends Component {
             repaintMixer: this.repaintMixer,
             setGlobalState: this.setGlobalState,
             beginDisplacement: this.beginDisplacement,
-            dragAndMoveFile: this.dragAndMoveFile,
+            callAPI: this.callAPI,
           }}
         >
           {loaded && mounted && this.props.children}

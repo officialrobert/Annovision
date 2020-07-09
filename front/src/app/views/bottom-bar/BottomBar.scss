@@ -203,14 +203,6 @@
           cursor: pointer;
           border-radius: 5px;
 
-          &:hover {
-            background: $app_lightgray;
-
-            & > span:nth-child(1) {
-              background: $app_lightgray;
-            }
-          }
-
           & > span:nth-child(1) {
             position: relative;
             height: 20px;
@@ -243,14 +235,6 @@
           cursor: pointer;
           border-radius: 5px;
           margin-left: 5px;
-
-          &:hover {
-            background: $app_lightgray;
-
-            & > span:nth-child(1) {
-              background: $app_lightgray;
-            }
-          }
 
           & > span:nth-child(1) {
             position: absolute;

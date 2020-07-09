@@ -171,32 +171,35 @@ export default class Mixer extends Component {
         if (inspectValid) {
           // draw rect points
 
+          const w = POINTS_BLOCK_RADIUS * 2;
+          const h = w;
+
           ctx.fillRect(
             sX - POINTS_BLOCK_RADIUS - 0.5,
             sY - POINTS_BLOCK_RADIUS - 0.5,
-            POINTS_BLOCK_RADIUS * 2,
-            POINTS_BLOCK_RADIUS * 2
+            w,
+            h
           );
 
           ctx.fillRect(
             sX + width - POINTS_BLOCK_RADIUS - 0.5,
             sY - POINTS_BLOCK_RADIUS - 0.5,
-            POINTS_BLOCK_RADIUS * 2,
-            POINTS_BLOCK_RADIUS * 2
+            w,
+            h
           );
 
           ctx.fillRect(
             sX - POINTS_BLOCK_RADIUS - 0.5,
             sY + height - POINTS_BLOCK_RADIUS - 0.5,
-            POINTS_BLOCK_RADIUS * 2,
-            POINTS_BLOCK_RADIUS * 2
+            w,
+            h
           );
 
           ctx.fillRect(
             sX + width - POINTS_BLOCK_RADIUS - 0.5,
             sY + height - POINTS_BLOCK_RADIUS - 0.5,
-            POINTS_BLOCK_RADIUS * 2,
-            POINTS_BLOCK_RADIUS * 2
+            w,
+            h
           );
         }
       } else if (cReg.region_attr.name === REGION_POLYGON_NAME) {
@@ -214,11 +217,13 @@ export default class Mixer extends Component {
           const vertex = cReg.shape_attr.vertices[polygonidx];
           const nextVertex = cReg.shape_attr.vertices[polygonidx + 1];
           const sXNext =
-            nextVertex[0] * (active.width / region.width) + offsetLeft;
+            nextVertex[0] * (active.width / region.width) * zoom + offsetLeft;
           const sYNext =
-            nextVertex[1] * (active.height / region.height) + offsetTop;
-          const sX = vertex[0] * (active.width / region.width) + offsetLeft;
-          const sY = vertex[1] * (active.height / region.height) + offsetTop;
+            nextVertex[1] * (active.height / region.height) * zoom + offsetTop;
+          const sX =
+            vertex[0] * (active.width / region.width) * zoom + offsetLeft;
+          const sY =
+            vertex[1] * (active.height / region.height) * zoom + offsetTop;
 
           if (polygonidx === 0) ctx.moveTo(sX, sY);
           ctx.lineTo(sXNext, sYNext);
@@ -227,9 +232,13 @@ export default class Mixer extends Component {
           if (polygonidx === numberOfVertices - 2) {
             ctx.moveTo(sXNext, sYNext);
             ctx.lineTo(
-              cReg.shape_attr.vertices[0][0] * (active.width / region.width) +
+              cReg.shape_attr.vertices[0][0] *
+                (active.width / region.width) *
+                zoom +
                 offsetLeft,
-              cReg.shape_attr.vertices[0][1] * (active.height / region.height) +
+              cReg.shape_attr.vertices[0][1] *
+                (active.height / region.height) *
+                zoom +
                 offsetTop
             );
             rectToFill.push([sXNext, sYNext]);
