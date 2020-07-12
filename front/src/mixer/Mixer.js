@@ -78,9 +78,16 @@ export default class Mixer extends Component {
   };
 
   componentWillUnmount() {
+    MixerAPI['clearMixer'](this);
+
     window.ipc.removeAllListeners('mixer:receiveMixer');
     this.IMG_DOM.onload = undefined;
     this.IMG_DOM.src = undefined;
+
+    this.startPaintLoad = null;
+    this.pointsPaintLoad = null;
+    this.endPaintLoad = null;
+    this.activeAnnotation = null;
 
     delete this.CANVAS_ID;
     delete this.wrap;

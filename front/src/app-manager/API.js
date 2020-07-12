@@ -158,4 +158,14 @@ export default {
       });
     }
   },
+
+  clearMixer: (AppManager) => {
+    if (!AppManager) return;
+    else if (AppManager.mixerReady) {
+      window.ipc.send('main:sendMixer', {
+        key: 'clearMixer',
+        value: true,
+      });
+    }
+  },
 };

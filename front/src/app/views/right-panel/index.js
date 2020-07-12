@@ -17,6 +17,7 @@ import {
   DEFAULT_SEGMENTATION_INSPECT,
 } from 'src/constants/App';
 import ClearFiles from 'src/components/modals/clear-files';
+import RemoveFile from 'src/components/modals/remove-file';
 
 const OUTPUT_MORE_RIGHT_PANEL = {
   open: { name: i18n('open_title'), key: 'open' },
@@ -199,15 +200,24 @@ class RightPanel extends Component {
     this.props.activateModal();
   };
 
-  removeAttempt = async () => {
-    const { userConfig } = this.props;
+  removeAttempt = () => {
+    const { userConfig, importingFiles } = this.props;
     const { mounted } = this.state;
     const { files = null } = userConfig;
 
-    if (!files || !files.active || !mounted) return;
-    // const { active } = files;
+    if (!files || !files.active || !mounted || importingFiles) return;
 
-    // remove active file
+    const { active } = files;
+    this.props.setDOM(
+      cloneElement(
+        <RemoveFile
+          close={this.props.deactivateModal}
+          file={{ ...active }}
+          confirm={this.props.clearFile}
+        />
+      )
+    );
+    this.props.activateModal();
   };
 
   onOutputOpts = (evt) => {
@@ -457,7 +467,7 @@ class RightPanel extends Component {
                     >
                       <p>{`[ID-${file.idx}] ${file.name}`}</p>
                       <span
-                        data={JSON.stringify(file)}
+                        data={JSON.stringify({ ...file, indexUI: index })}
                         className={styles.cover}
                       />
                     </li>

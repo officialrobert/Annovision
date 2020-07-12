@@ -16,6 +16,7 @@ import { withModalSettings } from 'src/modal-manager/Context';
 import ClassificationClasses from 'src/components/modals/classification-classes';
 import Checkbox from 'src/components/check-box';
 import InlineSVG from 'src/components/inline-svg';
+import Action from 'src/components/action';
 
 class BottomBar extends Component {
   taskActionsRef = null;
@@ -209,8 +210,12 @@ class BottomBar extends Component {
   };
 
   render() {
-    const { inspect, moveAndDrag } = this.props;
+    const { inspect, moveAndDrag, userConfig } = this.props;
     const { rightPanel, leftPanel } = this.state;
+    const { task } = userConfig;
+    let disableInspect = false;
+
+    if (task.key === CLASSIFICATION_TASK.key) disableInspect = true; // we disable where inspect mode is not applicable
 
     return (
       <div className={styles.bottombar}>
@@ -218,7 +223,10 @@ class BottomBar extends Component {
           <div className={styles.save}>
             <p> {i18n('save_title')}</p>
           </div>
-          <div className={cx(styles.center_vertical_row, styles.inspectmode)}>
+          <Action
+            className={cx(styles.center_vertical_row, styles.inspectmode)}
+            disabled={disableInspect}
+          >
             <Checkbox
               onChange={this.toggleInspectMode}
               selected={inspect.isOn}
@@ -227,7 +235,7 @@ class BottomBar extends Component {
             <p className={cx(styles.center_vertical_row, styles.title)}>
               {i18n('inspect_mode_title')}
             </p>
-          </div>
+          </Action>
           <div
             onClick={this.toggleModeAndDrag}
             className={cx(styles.center_vertical_row, styles.dragmode, {

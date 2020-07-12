@@ -57,5 +57,7 @@
     "create_first_attribute": "It's empty. Create your first attribute.",
     "create_first_label": "It's empty. Create your first label",
     "sure_to_clear_anno": "Are you sure to remove all annotations on this file?",
-    "inspect_mode_title": "Inspect"
+    "inspect_mode_title": "Inspect",
+    "remove_file_selected": "Are you sure to remove currently selected file?",
+    "removing_selected_file": "Removing selected file, please wait.."
 }

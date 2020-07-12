@@ -9,11 +9,76 @@
 
   & > div:nth-child(1) {
     position: relative;
-    height: 200px;
-    width: 450px;
+    width: 420px;
     background: white;
     border-radius: 6px;
     -webkit-box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    padding-top: 20px;
+
+    .msg {
+      position: relative;
+      width: 90%;
+
+      & > p {
+        position: relative;
+        font-size: 13px;
+        text-align: left;
+      }
+    }
+
+    .removing {
+      position: relative;
+      background: white;
+      width: 100%;
+
+      .loading {
+        position: relative;
+        padding: 10px 0px;
+
+        & > p {
+          position: relative;
+          font-size: 13px;
+          text-align: left;
+        }
+
+        .spin {
+          position: relative;
+          padding-top: 5px;
+          height: 18px;
+          width: calc(18px * 4);
+          margin-top: 10px;
+        }
+      }
+    }
+
+    .actions {
+      position: relative;
+      margin-top: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+
+      .confirm,
+      .cancel {
+        position: relative;
+        height: 30px;
+        width: 80px;
+        background: $app_purple;
+
+        & > p {
+          font-family: 'Spartan-Bold';
+        }
+      }
+
+      .cancel {
+        background: $app_red;
+      }
+
+      .confirm {
+        margin-left: 10px;
+      }
+    }
   }
 }

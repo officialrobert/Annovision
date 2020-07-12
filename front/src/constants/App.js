@@ -42,6 +42,7 @@ export const DEFAULT_PROJECT_DATA = {
   // attributes-colors-types index must match
   region: { colors: [], attributes: [], types: [] },
   segmentation: { labels: [], colors: [] },
+  dataIdx: 0,
 };
 
 export const SUPPORTED_FILE_RESOLUTION = [

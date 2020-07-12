@@ -137,6 +137,44 @@ class DB {
       return result;
     });
 
+    ipc.handle(
+      'db:removeDataFile',
+      async (evt, { projectId, projectName, file, numFiles }) => {
+        let result = { isSuccess: false };
+        if (!this.app) {
+          Logger.error(
+            `DbIPC - 'db:removeDataFile' : Required app object is missing`
+          );
+          result.error = `DbIPC - 'db:removeDataFile' : Required app object is missing`;
+        } else if (this.app.instance.annoDB) {
+          try {
+            let res = await this.app.instance.annoDB.removeFileFromProject(
+              projectId,
+              projectName,
+              numFiles,
+              file
+            );
+
+            if (res.err) {
+              result.isSuccess = false;
+              throw new Error(
+                `DbIPC 'db:removeDataFile' Error: Flag from removeFileFromProject`
+              );
+            } else {
+              result = { ...res };
+            }
+          } catch (err) {
+            Logger.error(
+              `DbIPC -  'db:removeDataFile': removing selected file in project - ${projectName} failed w/ error - ${err.message}`
+            );
+            result.error = err.message;
+          }
+        }
+
+        return result;
+      }
+    );
+
     ipc.handle('db:checkFileOutput', async (evt, project, file) => {
       /**
        * Checks if the annotation file for available tasks are present.
@@ -308,6 +346,7 @@ class DB {
     ipc.removeAllListeners('db:setupTask');
     ipc.removeAllListeners('db:setFileAnnotation');
     ipc.removeAllListeners('db:getFileAnnotation');
+    ipc.removeAllListeners('db:removeDataFile');
 
     Logger.info('Releasing ipc listeners on DB instance');
   };

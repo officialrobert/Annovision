@@ -54,6 +54,20 @@ def removeFilesAndDir(dir_path, include_dir=False):
     return isRemoved
 
 
+def removeFileUnderDir(dir_path, file_name, include_dir=False):
+    isRemoved = 'false'
+    file_full_path = os.path.join(dir_path, file_name)
+    if os.path.exists(file_full_path) == True:
+        try:
+            os.remove(file_full_path)
+            if include_dir == True:
+                os.rmdir(dir_path)
+            isRemoved = 'true'
+        except Exception:
+            pass
+    return isRemoved
+
+
 def helpersmain(data):
     if 'sub' in data:
         if(data['sub'] == 'properties'):
@@ -69,6 +83,9 @@ def helpersmain(data):
         elif(data['sub'] == 'remove-files-from-dir'):
             does_inc_dir = True if data['include_dir'] == 'true' else False
             return removeFilesAndDir(data['path'], does_inc_dir)
+        elif(data['sub'] == 'remove-file'):
+            does_inc_dir = True if data['include_dir'] == 'true' else False
+            return removeFileUnderDir(data['path'], data['file'], does_inc_dir)
         else:
             return {}
     else:

@@ -1,0 +1,13 @@
+.action {
+  position: relative;
+
+  .cover {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
+
+  &_disabled {
+    opacity: 0.5;
+  }
+}

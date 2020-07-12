@@ -1,12 +1,9 @@
 const Logger = require('./Logger').default;
 const PyCaller = require('./PyCaller').default;
 const path = require('path');
-const {
-  TASK_TYPES,
-  CLASSIFICATION_TASK,
-  REGION_TASK,
-} = require('../constants/App');
+const { TASK_TYPES, CLASSIFICATION_TASK } = require('../constants/App');
 const fs = require('fs');
+const { cloneObject } = require('../helpers/util');
 
 class AnnoDB {
   app = null;
@@ -132,6 +129,7 @@ class AnnoDB {
         ...{
           permanent: (data.permanent && 'true') || 'false',
           output_path: data.outputPath,
+          data_idx: data.dataIdx,
         },
       });
 
@@ -277,6 +275,7 @@ class AnnoDB {
           ...data,
           project_name: data.projectName,
           project_id: data.projectId,
+          num_files: data.numFiles,
         });
 
         if (newdatapy.err) {
@@ -285,6 +284,9 @@ class AnnoDB {
         } else {
           this.app.annoDB.projectInKeys[`${data.projectId}`].numFiles =
             newdatapy.data.numFiles;
+          this.app.annoDB.projectInKeys[`${data.projectId}`].dataIdx =
+            data.idx + 1;
+
           result = {
             ...result,
             data: newdatapy.data,
@@ -352,8 +354,83 @@ class AnnoDB {
         result.err = false;
         result.isSuccess = true;
         this.app.annoDB.projectInKeys[`${projectId}`].numFiles = 0;
+        this.app.annoDB.projectInKeys[`${projectId}`].dataIdx = 0;
 
         await this.removeOutputFiles(projectName);
+      }
+
+      resolve(result);
+    });
+  };
+
+  removeOutputFile = async (project, idx) => {
+    project = String(project).toLowerCase();
+    Logger.info(`Removing output file - ${idx} from project - ${project}`);
+
+    try {
+      const { output } = this.app.settings.dirs;
+      const tasksKey = Object.keys(TASK_TYPES);
+
+      for (let index = 0; index < tasksKey.length; index++) {
+        const ctask = tasksKey[index];
+        const fullPath = path.join(output, project, ctask);
+        const checkpathpy = await PyCaller.call('send:helpers', {
+          sub: 'check-path',
+          path: fullPath,
+        });
+
+        if (!checkpathpy.err && checkpathpy.data) {
+          // the project file and task does exist
+          // finally remove the file
+
+          const removefilepy = await PyCaller.call('send:helpers', {
+            sub: 'remove-file',
+            path: fullPath,
+            file: `${idx}.json`,
+            include_dir: 'false',
+          });
+
+          if (!removefilepy.err && removefilepy.data) {
+            Logger.info(
+              `Successfully removed output file - ${idx} for task - ${ctask} under project - ${project}`
+            );
+          }
+        } else {
+          throw new Error(`${fullPath} path in output does not exists`);
+        }
+      }
+    } catch (err) {
+      Logger.error(
+        `AnnoDB Clas: on removing output file - ${idx} under - ${project} ${err.message}`
+      );
+    }
+  };
+
+  removeFileFromProject = (projectId, projectName, numFiles, file) => {
+    return new Promise(async (resolve) => {
+      let result = { isSuccess: false, err: false };
+      const removedatapy = await PyCaller.call('send:database', {
+        sub: 'remove-data',
+        project_id: projectId,
+        project_name: projectName,
+        idx: file.idx,
+        name: file.name,
+        path: file.path,
+        num_files: numFiles,
+      });
+
+      if (removedatapy.err || !removedatapy.data) {
+        result.err = true;
+        result.isSuccess = false;
+      } else {
+        // we remove file annotation if it exists
+        this.app.annoDB.projectInKeys[`${projectId}`].numFiles = numFiles - 1;
+        if (numFiles - 1 === 0) {
+          this.app.annoDB.projectInKeys[`${projectId}`].dataIdx = 0;
+        }
+
+        await this.removeOutputFile(projectName, file.idx);
+        result.isSuccess = true;
       }
 
       resolve(result);

@@ -264,8 +264,9 @@ class MixerComponent extends Component {
           this.displacement.from = [];
         }
       );
-      return;
-    } else if (
+    }
+
+    if (
       task.key === CLASSIFICATION_TASK.key ||
       !files.active ||
       this.points.start.length <= 0 ||
@@ -277,6 +278,7 @@ class MixerComponent extends Component {
           hasDrag: false,
         });
       }
+
       return;
     }
 
@@ -446,7 +448,11 @@ class MixerComponent extends Component {
     if (files.active) {
       hasActiveFile = true;
       this.enablePaint = true;
-    } else this.enablePaint = false;
+    } else {
+      if (this.points.start.length > 0 || this.points.cont.length > 0)
+        this.points = { start: [], cont: [], stop: [] };
+      this.enablePaint = false;
+    }
 
     if (mixerStyle) {
       width = mixerStyle.width;

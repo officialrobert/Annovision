@@ -674,7 +674,8 @@ class TaskSetup extends Component {
   getTaskDisplay = ({ key }) => {
     const { selectedProject } = cloneObject(this.props.userConfig);
 
-    if (key === CLASSIFICATION_TASK.key) {
+    if (!selectedProject) return null;
+    else if (key === CLASSIFICATION_TASK.key) {
       const {
         newClassname,
         newClassnameErr,

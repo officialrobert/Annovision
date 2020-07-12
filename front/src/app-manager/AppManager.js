@@ -95,14 +95,16 @@ export default class AppManager extends Component {
   };
 
   onMixerReady = () => {
-    const { loaded, properties } = this.state;
+    const { loaded, properties, userConfig } = this.state;
 
-    if (this.mixerReadyCbCalled || !loaded) return;
+    if (this.mixerReadyCbCalled || !loaded || !userConfig) return;
+    const task = cloneObject(userConfig.task);
 
     this.mixerReadyCbCalled = true;
     Logger.log('Calling onMixerReady');
     Logger.log(`Setting mixer resolution with - ${properties.resolution}`);
     API['setResolution'](this, properties.resolution);
+    API['setTask'](this, task);
   };
 
   onAppResize = debounce(async () => {
@@ -504,7 +506,7 @@ export default class AppManager extends Component {
     }
   };
 
-  callAPI = async (fn, value) => {
+  callAPI = async (fn, value = undefined) => {
     // call API namespace without calling setState
     const cb = API[`${fn}`];
 

@@ -247,4 +247,21 @@ export default {
 
     Mixer.repaintOnMain();
   },
+
+  clearMixer: (Mixer) => {
+    if (!Mixer) return;
+    else if (Mixer.state.mounted) {
+      const c = document.getElementById(Mixer.CANVAS_ID);
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      Mixer.setState({
+        files: { active: null },
+      });
+
+      Mixer.startPaintLoad = null;
+      Mixer.pointsPaintLoad = null;
+      Mixer.activeAnnotation = null;
+    }
+  },
 };

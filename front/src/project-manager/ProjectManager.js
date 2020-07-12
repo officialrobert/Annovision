@@ -348,10 +348,11 @@ class ProjectManager extends Component {
       importingFiles: true,
     });
 
-    data.idx = selectedProject.numFiles;
+    data.idx = selectedProject.dataIdx;
     data.key = `${data.name}-${new Date().getDate().toString()}`;
     data.projectName = selectedProject.name;
     data.projectId = selectedProject.idx;
+    data.numFiles = selectedProject.numFiles;
 
     try {
       let res = await window.ipc.invoke('db:addDataFile', data);
@@ -363,6 +364,7 @@ class ProjectManager extends Component {
           const { files } = userConfig;
           const minFilesL = (files.currentPage - 1) * files.filesPerPage;
           selectedProject.numFiles = res.data.numFiles;
+          selectedProject.dataIdx += 1;
           await this.setStateAsync({ selectedProject });
           await this.props.setUserConfig('selectedProject', selectedProject);
           if (fetchFiles)
@@ -414,6 +416,7 @@ class ProjectManager extends Component {
         files.currentPage = 1;
         files.active = null;
         selectedProject.numFiles = 0;
+        selectedProject.dataIdx = 0;
         inspect.region = { ...DEFAULT_REGION_INSPECT };
         inspect.segmentation = { ...DEFAULT_SEGMENTATION_INSPECT };
 
@@ -426,6 +429,7 @@ class ProjectManager extends Component {
         );
         await this.props.setGlobalState('activeAnnotation', null);
         await this.props.setGlobalState('inspect', inspect);
+        await this.props.callAPI('clearMixer');
       }
     } catch (err) {
       Logger.error(
@@ -439,6 +443,82 @@ class ProjectManager extends Component {
     });
   };
 
+  clearFile = async (file) => {
+    const { userConfig } = this.props;
+    const { importingFiles, removingFiles } = this.state;
+    const selectedProject = cloneObject(this.state.selectedProject);
+    const projectFiles = cloneObject(this.state.projectFiles);
+    const files = cloneObject(userConfig.files);
+    const inspect = cloneObject(this.props.inspect);
+
+    if (
+      importingFiles ||
+      removingFiles ||
+      !selectedProject ||
+      projectFiles.length <= 0 ||
+      selectedProject.numFiles <= 0
+    )
+      return;
+    const { name, idx } = selectedProject;
+
+    try {
+      await this.setStateAsync({ removingFiles: true });
+      const res = await window.ipc.invoke('db:removeDataFile', {
+        projectName: name,
+        projectId: idx,
+        file: cloneObject(file),
+        numFiles: Number(selectedProject.numFiles),
+      });
+
+      if (!res.isSuccess) {
+        throw new Error(res.error);
+      } else {
+        let doFetchNewProjectFiles = false;
+
+        files.active = null;
+        inspect.region = { ...DEFAULT_REGION_INSPECT };
+        inspect.segmentation = { ...DEFAULT_SEGMENTATION_INSPECT };
+        selectedProject.numFiles -= 1;
+        projectFiles.splice(file.indexUI, 1);
+
+        if (projectFiles.length === 0 && files.currentPage > 1) {
+          files.currentPage -= 1;
+          doFetchNewProjectFiles = true;
+        }
+
+        if (selectedProject.numFiles === 0) {
+          selectedProject.dataIdx = 0;
+        }
+
+        await this.setStateAsync({
+          selectedProject,
+          projectFiles,
+        });
+        await this.props.setUserConfig('files', files);
+        await this.props.setUserConfig('selectedProject', selectedProject);
+        await this.props.setGlobalState('activeAnnotation', null);
+        await this.props.setGlobalState('inspect', inspect);
+        await this.updateUserProjects();
+
+        if (doFetchNewProjectFiles) {
+          await this.fetchProjectFiles();
+        }
+
+        await this.props.callAPI('clearMixer');
+
+        Logger.log(
+          `Successfully cleared file - ${file.idx}-${file.name} under project - ${name}`
+        );
+      }
+    } catch (err) {
+      Logger.error(
+        `Clearing file - ${file.idx}-${file.name} failed with error - ${err.message}`
+      );
+    }
+
+    await this.setStateAsync({ removingFiles: false });
+  };
+
   updateUserProjects = async () => {
     const { selectedProject } = this.state;
     const userProjects = cloneObject(this.state.userProjects);
@@ -448,6 +528,7 @@ class ProjectManager extends Component {
 
       if (selectedProject.idx === cProject.idx) {
         cProject.numFiles = selectedProject.numFiles;
+        cProject.dataIdx = selectedProject.dataIdx;
         for (let taskidx = 0; taskidx < TASK_KEYS_IN_ARRAY.length; taskidx++) {
           const ctask = TASK_KEYS_IN_ARRAY[taskidx].toLowerCase();
           cProject[`${ctask}`] = selectedProject[`${ctask}`];
@@ -456,6 +537,9 @@ class ProjectManager extends Component {
       }
     }
 
+    Logger.log(
+      `Updated user projects - ${JSON.stringify(this.state.selectedProject)}`
+    );
     await this.setStateAsync({ userProjects });
   };
 
@@ -491,6 +575,7 @@ class ProjectManager extends Component {
           fetchProjectFiles: this.fetchProjectFiles,
           clearAllFiles: this.clearAllFiles,
           setupProjectTask: this.setupProjectTask,
+          clearFile: this.clearFile,
         }}
       >
         {this.props.children}

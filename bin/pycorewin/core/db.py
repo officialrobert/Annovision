@@ -14,7 +14,7 @@ def addProject(data):
 
     isCreated = 'false'
     # ( '1', 'Default', 'default-123123', 'region/classification/segmentation', 'image/video', 'x://fake-path//' )
-    #   idx text,
+    #   idx integer,
     #   name text,
     #   key text,
     #   file text,
@@ -24,16 +24,17 @@ def addProject(data):
     #   classification text
     #   region text
     #   segmentation text
+    #   data_idx integer
     if 'idx' in data and 'name' in data and 'key' in data \
             and 'file' in data and 'output_path' in data and 'permanent' in data \
-            and 'classification' in data and 'region' in data and 'segmentation' in data:
+            and 'classification' in data and 'region' in data and 'segmentation' in data and 'data_idx' in data:
         classi_in_str = json.dumps(data['classification'])
         regi_in_str = json.dumps(data['region'])
         segme_in_str = json.dumps(data['segmentation'])
 
-        cur.execute("""INSERT INTO annoprojects VALUES (%d,'%s','%s','%s','%s','%s',0,'%s','%s','%s')""" %
+        cur.execute("""INSERT INTO annoprojects VALUES (%d,'%s','%s','%s','%s','%s',0,'%s','%s','%s',%d)""" %
                     (data['idx'], data['name'], data['key'], data['file'], data['output_path'],
-                     data['permanent'], classi_in_str, regi_in_str, segme_in_str))
+                     data['permanent'], classi_in_str, regi_in_str, segme_in_str, data['data_idx']))
         conn.commit()
         isCreated = 'true'
     conn.close()
@@ -74,7 +75,8 @@ def getAllProjects():
             'numFiles': p[6],
             'classification': p[7],
             'region': p[8],
-            'segmentation': p[9]
+            'segmentation': p[9],
+            'dataIdx': p[10]
         })
     conn.commit()
     conn.close()
@@ -96,7 +98,8 @@ def initAnno():
         num_files INTEGER,
         classification TEXT,
         region TEXT,
-        segmentation TEXT)""")
+        segmentation TEXT,
+        data_idx INTEGER)""")
     cur.execute("""CREATE TABLE IF NOT EXISTS annodata (
         idx INTEGER,
         name TEXT,
@@ -116,13 +119,14 @@ def addData(data):
     global cur
     isAdded = 'false'
 
-    if 'idx' in data and 'name' in data and 'path' in data and 'key' in data and 'project_name' in data and 'project_id' in data:
+    if 'idx' in data and 'name' in data and 'path' in data and 'key' in data \
+            and 'project_name' in data and 'project_id' in data and 'num_files' in data:
         try:
             dims = getDimension(data)
             if(dims['isSuccess'] == 'true'):
-                num_files = data['idx'] + 1
-                cur.execute("""UPDATE annoprojects SET num_files = %d WHERE idx = %d AND name = '%s' """ % (
-                    num_files, data['project_id'], data['project_name']))
+                num_files = data['num_files'] + 1
+                cur.execute("""UPDATE annoprojects SET num_files = %d, data_idx = %d WHERE idx = %d AND name = '%s' """ % (
+                    num_files, data['idx'] + 1, data['project_id'],  data['project_name']))
                 cur.execute("""INSERT INTO annodata VALUES (%d, '%s','%s', '%s','%s', %d, %d, %d)
                     """ % (data['idx'], data['name'], data['path'], data['key'],
                            data['project_name'], data['project_id'], dims['width'], dims['height']))
@@ -140,10 +144,18 @@ def removeData(data):
     global conn
     global cur
     isRemove = 'false'
-    if 'idx' in data and 'name' in data and 'path' in data and 'project_id' in data:
+    if 'idx' in data and 'name' in data and 'path' in data and 'project_id' in data and 'project_name' in data \
+            and 'num_files' in data:
         try:
-            cur.execute("""DELETE FROM annodata WHERE project_id = %d AND idx = %d AND name = '%s' AND path = '%s'""" %
-                        (data['project_id'], data['idx'], data['name'], data['path']))
+            num_files = data['num_files'] - 1
+            cur.execute("""DELETE FROM annodata WHERE project_id = %d AND project_name = '%s' AND idx = %d AND name = '%s' AND path = '%s'""" %
+                        (data['project_id'], data['project_name'],
+                         data['idx'], data['name'], data['path']))
+            cur.execute("""UPDATE annoprojects SET num_files = %d WHERE idx = %d AND name = '%s' """ % (
+                num_files, data['project_id'], data['project_name']))
+            if num_files == 0:
+                cur.execute("""UPDATE annoprojects SET data_idx = 0 WHERE idx = %d AND name = '%s' """ % (
+                    data['project_id'], data['project_name']))
             isRemove = 'true'
             conn.commit()
         except Exception:
@@ -161,7 +173,7 @@ def removeAllFiles(data):
         try:
             cur.execute("""DELETE FROM annodata WHERE project_id = %d""" %
                         (data['project_id']))
-            cur.execute("""UPDATE annoprojects SET num_files = 0 WHERE idx = %d AND name = '%s' """ % (
+            cur.execute("""UPDATE annoprojects SET num_files = 0, data_idx = 0 WHERE idx = %d AND name = '%s' """ % (
                 data['project_id'], data['project_name']))
             isRemove = 'true'
             conn.commit()
