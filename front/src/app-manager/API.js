@@ -1,26 +1,52 @@
 import Logger from 'src/lib/Logger';
 import { cloneObject } from 'src/helpers/util';
+import { SUPPORTED_FILE_RESOLUTION_IN_KEYS } from 'src/constants/App';
 
 export default {
   setActiveFile: async (AppManager, value, type = 'image') => {
     const files = cloneObject(AppManager.state.userConfig.files || value);
     const { active } = files;
+    const maxResolution = SUPPORTED_FILE_RESOLUTION_IN_KEYS['1080p']; // 1080p max support for now
 
     if (type === 'image' && active) {
       const { path, height, width, name } = active;
       let canvasW = width;
       let canvasH = height;
       const fit = AppManager.getImageMaxSizeContain(width, height);
+      const fileDoesExist = await window.ipc.invoke(
+        'file:pathDoesExist',
+        String(path)
+      ); // we need to make sure that the file does exists first
+      let hasErr = false;
 
-      if (!path) return;
-      else if (!fit) {
+      if (!path || !fileDoesExist) {
+        // path is invalid, prompt on frame
+        active.invalid = true;
+        hasErr = true;
+      } else if (
+        !fit ||
+        maxResolution.width < width ||
+        maxResolution.height < height
+      ) {
         Logger.error(
           `Something went wrong in looking for the max dimensions available for the file - ${name}`
         );
-        return;
+        // image dimension exceeds limit
+        // must be below 1080p resolution
+        active.notFit = true;
+        hasErr = true;
       } else {
         canvasH = fit.canvasH;
         canvasW = fit.canvasW;
+      }
+
+      if (hasErr) {
+        AppManager.setUserConfig('files', files);
+        AppManager.callAPI('clearMixer');
+        return;
+      } else {
+        active.invalid = false;
+        active.notFit = false;
       }
 
       const result = await window.ipc.invoke('file:imagePathToBase64', path);

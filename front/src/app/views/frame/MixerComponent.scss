@@ -13,7 +13,9 @@
     display: block;
   }
 
-  .nofile {
+  .nofile,
+  .filenotexist,
+  .notsupported {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -23,6 +25,7 @@
     .msg {
       position: relative;
       padding: 10px;
+      width: 90%;
 
       & > p {
         font-size: 13px;

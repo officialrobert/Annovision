@@ -5,6 +5,7 @@ const Logger = require('../../lib/Logger').default;
 const { IMAGE_FILE_EXT_SUPPORTED } = require('../../constants/App');
 const System = require('../../lib/System').default;
 const CustomImage = require('../../lib/CustomImage').default;
+const PyCaller = require('../../lib/PyCaller').default;
 
 class Files {
   app = null;
@@ -63,16 +64,17 @@ class Files {
     });
 
     ipc.on('file:getDirectoryPath', (evt, name = '') => {
+      let dirPath = '';
+
       if (!this.app) {
         Logger.error(
           `FilesIPC - 'file:getDirectoryPath' : Required app object is missing`
         );
       } else if (this.app.settings.dirs[name]) {
-        evt.returnValue = this.app.settings.dirs[name] || '';
-        return;
+        dirPath = this.app.settings.dirs[name];
       }
 
-      evt.returnValue = '';
+      evt.returnValue = dirPath;
     });
 
     ipc.on('file:showDirectoryPath', async (evt, name) => {
@@ -155,6 +157,30 @@ class Files {
 
       evt.returnValue = fullPath;
     });
+
+    ipc.handle('file:pathDoesExist', async (evt, dirPath) => {
+      /**
+       * Accepts directory or file path
+       */
+
+      let doesExist = false;
+      if (!this.app) {
+        Logger.error(
+          `FilesIPC - 'file:pathDoesExist' : Required app object is missing`
+        );
+      } else {
+        const checkpathpy = await PyCaller.call('send:helpers', {
+          sub: 'check-path',
+          path: dirPath,
+        });
+
+        if (!checkpathpy.err && checkpathpy.data) {
+          doesExist = true;
+        }
+      }
+
+      return doesExist;
+    });
   };
 
   release = () => {
@@ -164,6 +190,7 @@ class Files {
     ipc.removeAllListeners('file:outputhPathForProject');
     ipc.removeAllListeners('file:imagePathToBase64');
     ipc.removeAllListeners('file:joinPaths');
+    ipc.removeAllListeners('file:pathDoesExist');
 
     Logger.info(`Releasing ipc listeners on Files instance`);
   };

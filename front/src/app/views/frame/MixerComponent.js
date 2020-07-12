@@ -27,6 +27,11 @@ class MixerComponent extends Component {
 
   constructor() {
     super();
+    this.setStateAsync = (obj) =>
+      new Promise((resolve) => {
+        this.setState({ ...obj }, resolve);
+      });
+
     this.canvasRef = createRef();
 
     window.ipc.on('main:receiveMain', this.handleReceive);
@@ -172,23 +177,13 @@ class MixerComponent extends Component {
     }
   };
 
-  startDrag = (evt) => {
+  startDrag = async (evt) => {
     const { userConfig, moveAndDrag } = this.props;
     const { task } = userConfig;
     const files = cloneObject(userConfig.files);
 
     if (!evt || !files.active || !files.active.fit) return;
-
-    const { clientX, clientY } = evt;
-    const { realX, realY } = this.getCoords(clientX, clientY);
-    const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
-    const { offsetLeft, offsetTop, zoom } = files.active.fit;
-
-    if (isBeyondNotAllowed) {
-      return;
-    }
-
-    if (task.key === CLASSIFICATION_TASK.key) {
+    else if (task.key === CLASSIFICATION_TASK.key) {
       if (this.state.hasDrag) {
         this.setState({
           hasDrag: false,
@@ -199,6 +194,15 @@ class MixerComponent extends Component {
         this.points.start = [];
         this.points.cont = [];
       }
+    }
+
+    const { clientX, clientY } = evt;
+    const { realX, realY } = this.getCoords(clientX, clientY);
+    const isBeyondNotAllowed = this.isBeyondImageDims(realX, realY);
+    const { offsetLeft, offsetTop, zoom } = files.active.fit;
+
+    if (isBeyondNotAllowed) {
+      return;
     }
 
     if (moveAndDrag) {
@@ -216,16 +220,13 @@ class MixerComponent extends Component {
         }
       }
 
-      if (task.opt === REGION_BOUNDINGBOX_NAME) {
-        this.points.start = [
-          {
-            sX: realX,
-            sY: realY,
-            sXFit: Math.floor((realX - offsetLeft) / zoom),
-            sYFit: Math.floor((realY - offsetTop) / zoom),
-            task,
-          },
-        ];
+      if (this.state.hasDrag && task.opt === REGION_BOUNDINGBOX_NAME) {
+        await this.props.storeAnnoRegionBased({ ...this.points });
+        this.points = { start: [], cont: [], stop: [] };
+        await this.setStateAsync({
+          hasDrag: false,
+        });
+        return;
       } else {
         this.points.start.push({
           sX: realX,
@@ -235,14 +236,14 @@ class MixerComponent extends Component {
           task,
         });
       }
-      this.setState(
-        {
+
+      if (!this.state.hasDrag) {
+        await this.setStateAsync({
           hasDrag: true,
-        },
-        () => {
-          this.props.beginPaint([...this.points.start]);
-        }
-      );
+        });
+      }
+
+      this.props.beginPaint([...this.points.start]);
     }
   };
 
@@ -285,35 +286,12 @@ class MixerComponent extends Component {
     const { clientX, clientY } = evt;
     const { realX, realY } = this.getCoords(clientX, clientY);
     this.points.stop = [{ eX: realX, eY: realY }];
-    const continueDragging = !(task.opt === REGION_BOUNDINGBOX_NAME);
-    this.setState(
-      {
-        hasDrag: continueDragging,
-      },
-      async () => {
-        const { userConfig } = this.props;
-        const { task } = userConfig;
-
-        if (task.opt === REGION_BOUNDINGBOX_NAME) {
-          await this.props.storeAnnoRegionBased({ ...this.points });
-          this.points = { start: [], cont: [], stop: [] };
-        }
-      }
-    );
   };
 
   offFrame = async (evt) => {
     if (this.onFrameFlag) this.onFrameFlag = false;
 
     if (this.state.hasDrag) {
-      const { userConfig } = this.props;
-      const { task } = userConfig;
-
-      if (task.opt === REGION_BOUNDINGBOX_NAME) {
-        await this.props.storeAnnoRegionBased({ ...this.points });
-        this.points = { start: [], cont: [], stop: [] };
-      }
-
       this.setState({
         hasDrag: false,
       });
@@ -334,7 +312,11 @@ class MixerComponent extends Component {
 
     if (task.key === REGION_BASED_TASK.key) {
       const canBeContinued = this.points.start.length >= 1;
-      if (task.opt === REGION_POLYGON_NAME && canBeContinued) {
+      if (
+        (task.opt === REGION_POLYGON_NAME ||
+          task.opt === REGION_BOUNDINGBOX_NAME) &&
+        canBeContinued
+      ) {
         this.setState({
           hasDrag: true,
         });
@@ -360,9 +342,10 @@ class MixerComponent extends Component {
       files.active.fit.offsetLeft = offsetLeft;
       files.active.fit.offsetTop = offsetTop;
       callAPI('setFileOffset', { ...files });
-    } else if (!hasDrag || !this.onFrameFlag || !this.points) return;
+    }
 
-    if (hasDrag) {
+    if (!hasDrag || !this.onFrameFlag || !this.points) return;
+    else if (hasDrag) {
       const startLatestL = this.points.start.length - 1;
       const { sX, sY } = this.points.start[startLatestL];
 
@@ -444,9 +427,13 @@ class MixerComponent extends Component {
     let hasActiveFile = false;
     let width = 0;
     let height = 0;
+    let exceedsDimsLimit = false;
+    let fileDoesNotExist = false;
 
     if (files.active) {
       hasActiveFile = true;
+      fileDoesNotExist = files.active.invalid;
+      exceedsDimsLimit = files.active.notFit;
       this.enablePaint = true;
     } else {
       if (this.points.start.length > 0 || this.points.cont.length > 0)
@@ -474,7 +461,20 @@ class MixerComponent extends Component {
             </div>
           </div>
         )}
-
+        {hasActiveFile && fileDoesNotExist && (
+          <div className={cx(styles.center_all_row, styles.filenotexist)}>
+            <div className={styles.msg}>
+              <p>{i18n('file_selected_not_exist')}</p>
+            </div>
+          </div>
+        )}
+        {hasActiveFile && exceedsDimsLimit && (
+          <div className={cx(styles.center_all_row, styles.notsupported)}>
+            <div className={styles.msg}>
+              <p>{i18n('file_selected_not_supported')}</p>
+            </div>
+          </div>
+        )}
         <div
           onMouseDown={this.startDrag}
           onMouseUp={this.endDrag}

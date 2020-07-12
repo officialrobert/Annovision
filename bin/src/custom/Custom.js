@@ -421,7 +421,7 @@ class Custom {
           nativeWindowOpen: true,
           nodeIntegration: false,
           preload: path.join(__dirname, 'a.js'),
-          devTools: isDev,
+          devTools: !!isDev,
         },
         icon: path.resolve(__dirname, './app.ico'),
       });
@@ -462,8 +462,6 @@ class Custom {
                 `window.mixer = window.open(window.MIXER_URL,'mixer')`
               );
             }
-            //else if (isAppURL && this.app.settings.renderer.mixer)
-            //this.doCheck();
           } catch (err) {
             Logger.error(err.message);
           }

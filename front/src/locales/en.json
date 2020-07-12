@@ -59,5 +59,7 @@
     "sure_to_clear_anno": "Are you sure to remove all annotations on this file?",
     "inspect_mode_title": "Inspect",
     "remove_file_selected": "Are you sure to remove currently selected file?",
-    "removing_selected_file": "Removing selected file, please wait.."
+    "removing_selected_file": "Removing selected file, please wait..",
+    "file_selected_not_exist": "Oops, selected file seems to not exist anymore.",
+    "file_selected_not_supported": "Oops, we apologize but this file isn't supported"
 }
