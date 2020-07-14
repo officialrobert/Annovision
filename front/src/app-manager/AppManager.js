@@ -467,6 +467,34 @@ export default class AppManager extends Component {
     this.storingRegionBased = false;
   };
 
+  removeRegionBased = async () => {
+    const { userConfig } = this.state;
+    const { task, files } = userConfig;
+    const { active = null } = files;
+    const inspect = cloneObject(this.state.inspect);
+
+    if (task.key !== REGION_BASED_TASK.key || !active) {
+      return;
+    } else if (inspect && inspect.isOn) {
+      const annoidx = Number(inspect.region.active) - 1;
+
+      if (annoidx >= 0) {
+        if (inspect.region.active > 1) {
+          inspect.region.active = annoidx;
+        } else inspect.region.active = 0;
+
+        await this.setAnnotation(task.key, {
+          idx: active.idx,
+          type: 'remove',
+          annoidx,
+        });
+        await this.setGlobalState('inspect', inspect, 'setInspect');
+      }
+    }
+
+    this.repaintMixer();
+  };
+
   contPaint = (pCont) => {
     const { userConfig } = this.state;
     const task = cloneObject(userConfig.task);
@@ -538,6 +566,7 @@ export default class AppManager extends Component {
             repaintMixer: this.repaintMixer,
             setGlobalState: this.setGlobalState,
             beginDisplacement: this.beginDisplacement,
+            removeRegionBased: this.removeRegionBased,
             callAPI: this.callAPI,
           }}
         >

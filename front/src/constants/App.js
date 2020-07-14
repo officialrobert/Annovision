@@ -45,11 +45,6 @@ export const DEFAULT_PROJECT_DATA = {
   dataIdx: 0,
 };
 
-export const SUPPORTED_FILE_RESOLUTION = [
-  { height: 720, width: 1280, key: '720p' },
-  { height: 1080, width: 1920, key: '1080p' },
-];
-
 export const SUPPORTED_FILE_RESOLUTION_IN_KEYS = {
   '720p': { height: 720, width: 1280 },
   '1080p': { height: 1080, width: 1920 },

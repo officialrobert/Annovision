@@ -110,6 +110,7 @@
 
     .isActive {
       background: $app_lightgray;
+      border-color: $app_purple !important;
     }
 
     .dragmode {
@@ -118,6 +119,7 @@
       padding: 5px 8px;
       border-radius: 7px;
       cursor: pointer;
+      border: 2px solid transparent;
 
       .ic {
         height: 18px;
@@ -155,9 +157,32 @@
         width: 100%;
         height: 100%;
 
-        .traverse {
+        .trash {
           position: absolute;
           right: 5px;
+
+          & > div:nth-child(1) {
+            position: relative;
+            padding: 5px 2px;
+            cursor: pointer;
+            border-radius: 7px;
+
+            &:hover {
+              background: $app_lightgray;
+            }
+
+            & > div:nth-child(1) {
+              position: relative;
+              height: 18px;
+              width: 18px;
+              padding: 2px 4px;
+            }
+          }
+        }
+
+        .traverse {
+          position: absolute;
+          right: 45px;
 
           .title {
             padding-top: 2px;

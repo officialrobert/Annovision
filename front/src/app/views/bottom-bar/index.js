@@ -120,6 +120,15 @@ class BottomBar extends Component {
     );
   };
 
+  removeInspectedRegion = async () => {
+    const { activeAnnotation, inspect } = this.props;
+
+    if (!activeAnnotation || !inspect) return;
+
+    // prompt warning modal(?)
+    await this.props.removeRegionBased();
+  };
+
   getTaskActions = () => {
     const { userConfig } = this.props;
     const { task } = userConfig;
@@ -179,7 +188,6 @@ class BottomBar extends Component {
               <div data={REGION_POLYGON_NAME} className={styles.cover} />
             </div>
           </div>
-
           <div className={cx(styles.center_vertical_row, styles.traverse)}>
             <p className={styles.title}>{i18n('regions_title')} </p>
             <Button
@@ -192,7 +200,7 @@ class BottomBar extends Component {
             <div
               className={cx(styles.center_vertical_row, styles.currentregion)}
             >
-              <p>{inspect.region.active} </p>
+              <p>{inspect && inspect.region.active} </p>
             </div>
             <Button
               forCancel={false}
@@ -202,6 +210,17 @@ class BottomBar extends Component {
               <p className={styles.center_all_row}>{'>'}</p>
             </Button>
           </div>
+
+          <Action
+            disabled={!inspect || !inspect.isOn}
+            className={cx(styles.center_all_row, styles.trash)}
+          >
+            <div className={cx(styles.center_all_row)}>
+              <div onClick={this.removeInspectedRegion}>
+                <InlineSVG name={'Trash'} svgWidth={'17'} svgHeight={'17'} />
+              </div>
+            </div>
+          </Action>
         </div>
       );
     } else if (SEGMENTATION_TASK.key === task.key) {

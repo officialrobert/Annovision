@@ -74,6 +74,16 @@ export default class Mixer extends Component {
       active.height * active.zoom
     );
 
+    ctx.lineWidth = '5';
+    ctx.strokeStyle = '#e8e3d8';
+    ctx.rect(
+      active.offsetLeft,
+      active.offsetTop,
+      active.width * active.zoom,
+      active.height * active.zoom
+    );
+    ctx.stroke();
+
     this.repaintOnMain();
   };
 

@@ -1,0 +1,14 @@
+{
+    "name": "annovision",
+    "version": "1.0.0",
+    "private": true,
+    "dependencies": {
+        "fs-extra": "^8.1.0"
+    },
+    "scripts": {
+        "start-front": "cd ./front && yarn run start",
+        "start-core": "cd ./bin && yarn run start",
+        "build-front": "cd ./front && yarn run build",
+        "build-app": "cd ./bin && yarn run build-core"
+    }
+}

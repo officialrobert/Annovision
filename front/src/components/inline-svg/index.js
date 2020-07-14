@@ -4,8 +4,9 @@ import cx from 'classnames';
 
 /* SVGs  */
 import Drag from 'src/assets/svg/misc/drag.svg';
+import Trash from 'src/assets/svg/misc/trash.svg';
 
-const ASSETS_SVG = { Drag: <Drag /> };
+const ASSETS_SVG = { Drag: <Drag />, Trash: <Trash /> };
 
 const InlineSVG = (props) => {
   const [hoverFlag, setHoverFlag] = useState(false);
