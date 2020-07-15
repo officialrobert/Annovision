@@ -453,16 +453,22 @@ class RightPanel extends Component {
               >
                 {projectFiles.map((file, index) => {
                   let isSelected = false;
+                  let selectedHasErr = false;
 
                   if (files.active) {
-                    if (files.active.idx === file.idx) isSelected = true;
+                    if (files.active.idx === file.idx) {
+                      isSelected = true;
+                      selectedHasErr =
+                        files.active.invalid || files.active.notFit;
+                    }
                   }
 
                   return (
                     <li
                       key={`${index}-${file.name}`}
                       className={cx(styles.center_vertical_row, {
-                        [styles.selected]: isSelected,
+                        [styles.selected]: !selectedHasErr && isSelected,
+                        [styles.selected_haserr]: selectedHasErr && isSelected,
                       })}
                     >
                       <p>{`[ID-${file.idx}] ${file.name}`}</p>

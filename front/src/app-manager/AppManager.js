@@ -423,10 +423,10 @@ export default class AppManager extends Component {
       sX = sX > pX ? pX : sX;
       sY = sY > pY ? pY : sY;
 
-      shape_attr.topLeftX = Math.floor(
+      shape_attr.topLeftX = Math.ceil(
         ((sX - offsetLeft) * (active.width / availWidth)) / zoom
       );
-      shape_attr.topLeftY = Math.floor(
+      shape_attr.topLeftY = Math.ceil(
         ((sY - offsetTop) * (active.height / availHeight)) / zoom
       );
 

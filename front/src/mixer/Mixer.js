@@ -74,16 +74,6 @@ export default class Mixer extends Component {
       active.height * active.zoom
     );
 
-    ctx.lineWidth = '5';
-    ctx.strokeStyle = '#e8e3d8';
-    ctx.rect(
-      active.offsetLeft,
-      active.offsetTop,
-      active.width * active.zoom,
-      active.height * active.zoom
-    );
-    ctx.stroke();
-
     this.repaintOnMain();
   };
 
@@ -163,13 +153,6 @@ export default class Mixer extends Component {
         const height =
           cReg.shape_attr.height * zoom * (active.height / region.height);
 
-        ctx.beginPath();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = '#4464e4';
-        ctx.rect(sX, sY, width, height);
-        ctx.stroke();
-        ctx.closePath();
-
         let fillColor = '#ffffff';
         let inspectValid = false;
 
@@ -185,8 +168,15 @@ export default class Mixer extends Component {
         ctx.fillRect(sX, sY, width, height);
         ctx.globalAlpha = 1;
 
+        ctx.beginPath();
+        ctx.fillStyle = '#4464e4';
+        ctx.rect(sX, sY, width, height);
+        ctx.stroke();
+        ctx.closePath();
+
         if (inspectValid) {
           // draw rect points
+          ctx.fillStyle = fillColor;
 
           const w = POINTS_BLOCK_RADIUS * 2;
           const h = w;

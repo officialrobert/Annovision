@@ -19,6 +19,8 @@ export default {
       ); // we need to make sure that the file does exists first
       let hasErr = false;
 
+      active.invalid = false;
+      active.notFit = false;
       if (!path || !fileDoesExist) {
         // path is invalid, prompt on frame
         active.invalid = true;
@@ -44,9 +46,6 @@ export default {
         AppManager.setUserConfig('files', files);
         AppManager.callAPI('clearMixer');
         return;
-      } else {
-        active.invalid = false;
-        active.notFit = false;
       }
 
       const result = await window.ipc.invoke('file:imagePathToBase64', path);

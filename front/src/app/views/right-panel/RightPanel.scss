@@ -126,6 +126,14 @@
         & > p {
           color: white;
         }
+
+        &_haserr {
+          background: $app_red;
+
+          & > p {
+            color: white;
+          }
+        }
       }
 
       & > li {

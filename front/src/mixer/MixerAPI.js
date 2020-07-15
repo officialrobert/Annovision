@@ -143,6 +143,8 @@ export default {
     if (!Mixer || !pCont || !Mixer.startPaintLoad) return;
     Mixer.pointsPaintLoad = pCont;
 
+    const { files } = Mixer.state;
+    const { active } = files;
     const c = document.getElementById(Mixer.CANVAS_ID);
     const ctx = c.getContext('2d');
     Mixer.paintActiveFile();
@@ -151,9 +153,11 @@ export default {
       Mixer.paintRegionBased();
 
       if (task.opt === REGION_BOUNDINGBOX_NAME) {
-        const { sX, sY } = Mixer.startPaintLoad[0];
+        const { sXFit, sYFit } = Mixer.startPaintLoad[0];
         const pointsLatest = Mixer.pointsPaintLoad.length - 1;
         let { pX, pY, width, height } = Mixer.pointsPaintLoad[pointsLatest];
+        const sX = sXFit * active.zoom + active.offsetLeft;
+        const sY = sYFit * active.zoom + active.offsetTop;
         if (pX <= sX) width = width * -1;
         if (pY <= sY) height = height * -1;
 
@@ -164,8 +168,6 @@ export default {
         ctx.stroke();
         ctx.fillStyle = '#4464e4';
       } else if (task.opt === REGION_POLYGON_NAME) {
-        const { files } = Mixer.state;
-        const { active } = files;
         const startLatest = Mixer.startPaintLoad.length - 1;
         const pointsLatest = Mixer.pointsPaintLoad.length - 1;
         const { pX, pY } = Mixer.pointsPaintLoad[pointsLatest];
