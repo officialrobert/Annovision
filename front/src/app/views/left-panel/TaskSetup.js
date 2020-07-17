@@ -421,17 +421,29 @@ class TaskSetup extends Component {
 
     if (evt.target.hasAttribute('data')) {
       try {
+        const { selectedProject } = this.props.userConfig;
+        const { region } = selectedProject;
         const regionAttributeRemove = cloneObject(
           this.state.regionAttributeRemove
         );
         const jsonData = JSON.parse(evt.target.getAttribute('data'));
 
-        if (regionAttributeRemove.includes(jsonData.cattribute)) {
+        if (!region) return;
+        else if (regionAttributeRemove.includes(jsonData.cattribute)) {
           regionAttributeRemove.splice(
             regionAttributeRemove.indexOf(jsonData.cattribute),
             1
           );
         } else regionAttributeRemove.push(jsonData.cattribute);
+
+        if (regionAttributeRemove.length === region.attributes.length) {
+          this.setState({
+            regionAttributeAllSelected: true,
+          });
+        } else
+          this.setState({
+            regionAttributeAllSelected: false,
+          });
 
         this.setState({
           regionAttributeRemove,
@@ -451,12 +463,24 @@ class TaskSetup extends Component {
 
     if (evt.target.hasAttribute('data')) {
       try {
+        const { selectedProject } = this.props.userConfig;
+        const { classification } = selectedProject;
         const classnamesRemove = cloneObject(this.state.classnamesRemove);
         const jsonData = JSON.parse(evt.target.getAttribute('data'));
 
-        if (classnamesRemove.includes(jsonData.cclass)) {
+        if (!classification) return;
+        else if (classnamesRemove.includes(jsonData.cclass)) {
           classnamesRemove.splice(classnamesRemove.indexOf(jsonData.cclass), 1);
         } else classnamesRemove.push(jsonData.cclass);
+
+        if (classnamesRemove.length === classification.classes.length) {
+          this.setState({
+            classificationAllSelected: true,
+          });
+        } else
+          this.setState({
+            classificationAllSelected: false,
+          });
 
         this.setState({
           classnamesRemove,
