@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import styles from './App.scss';
 
+import ErrorBound from 'src/error-bound';
 import AppManager from 'src/app-manager/AppManager';
 import ModalManager from 'src/modal-manager/ModalManager';
 import ProjectManager from 'src/project-manager/ProjectManager';
@@ -13,21 +14,23 @@ import Frame from 'src/app/views/frame';
 export default class App extends Component {
   render() {
     return (
-      <AppManager>
-        <ProjectManager>
-          <ModalManager>
-            <div className={styles.app}>
-              <Header />
-              <section className={styles.content}>
-                <LeftPanel />
-                <RightPanel />
-                <BottomBar />
-                <Frame />
-              </section>
-            </div>
-          </ModalManager>
-        </ProjectManager>
-      </AppManager>
+      <ErrorBound>
+        <AppManager>
+          <ProjectManager>
+            <ModalManager>
+              <div className={styles.app}>
+                <Header />
+                <section className={styles.content}>
+                  <LeftPanel />
+                  <RightPanel />
+                  <BottomBar />
+                  <Frame />
+                </section>
+              </div>
+            </ModalManager>
+          </ProjectManager>
+        </AppManager>
+      </ErrorBound>
     );
   }
 }

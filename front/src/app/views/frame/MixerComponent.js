@@ -212,7 +212,7 @@ class MixerComponent extends Component {
       this.setState({
         hasMove: true,
       });
-    } else if (task.key === REGION_BASED_TASK.key) {
+    } else if (task.key === REGION_BASED_TASK.key && task.opt) {
       if (this.points.start.length > 0) {
         const startLatestL = this.points.start.length - 1;
         if (this.points.start[startLatestL].task.opt !== task.opt) {

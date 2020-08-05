@@ -129,6 +129,10 @@ class BottomBar extends Component {
     await this.props.removeRegionBased();
   };
 
+  editInspectedRegion = async () => {
+    // prompt modal to edit region property
+  };
+
   getTaskActions = () => {
     const { userConfig } = this.props;
     const { task } = userConfig;
@@ -218,6 +222,16 @@ class BottomBar extends Component {
             <div className={cx(styles.center_all_row)}>
               <div onClick={this.removeInspectedRegion}>
                 <InlineSVG name={'Trash'} svgWidth={'17'} svgHeight={'17'} />
+              </div>
+            </div>
+          </Action>
+          <Action
+            disabled={!inspect || !inspect.isOn || inspect.region.active <= 0}
+            className={cx(styles.center_all_row, styles.edit)}
+          >
+            <div className={cx(styles.center_all_row)}>
+              <div onClick={this.editInspectedRegion}>
+                <InlineSVG name={'Edit'} svgWidth={'17'} svgHeight={'17'} />
               </div>
             </div>
           </Action>

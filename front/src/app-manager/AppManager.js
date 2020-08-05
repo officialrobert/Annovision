@@ -489,10 +489,10 @@ export default class AppManager extends Component {
           annoidx,
         });
         await this.setGlobalState('inspect', inspect, 'setInspect');
+
+        this.repaintMixer();
       }
     }
-
-    this.repaintMixer();
   };
 
   contPaint = (pCont) => {
