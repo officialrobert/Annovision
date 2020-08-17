@@ -41,17 +41,15 @@ class PyCaller {
         ]);
 
         if (verbose)
-          Logger.info(
-            `PyCaller call: ${str} w/ result: ${JSON.stringify(res)}`
-          );
+          Logger.info(`PyCaller call: ${str} result: ${JSON.stringify(res)}`);
 
         if (res.err)
           throw new Error(`Unexpected error on pycorewin => ${res.data}`);
         else return res;
       } catch (err) {
-        Logger.error(err.message);
+        Logger.error(`PyCaller error: ${err.message}`);
       }
-    } else Logger.error('PyCaller: System object does not exist!');
+    } else Logger.error('PyCaller error: System library does not exist');
 
     return { err: true };
   };

@@ -3,7 +3,6 @@
 const winston = require('winston');
 const path = require('path');
 const moment = require('moment');
-const isDev = require('electron-is-dev');
 
 const options = {
   file: {
@@ -11,7 +10,7 @@ const options = {
     filename: path.resolve(__dirname, '../logs/app.log'),
     handleExceptions: true,
     json: true,
-    maxsize: 5242880,
+    maxsize: 10000000,
     maxFiles: 5,
     colorize: false,
   },

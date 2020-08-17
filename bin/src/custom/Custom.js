@@ -151,6 +151,11 @@ class Custom {
     }
   };
 
+  outsideCloseApp = (err) => {
+    Logger.error(err);
+    this.app.settings.renderer.main.close();
+  };
+
   begin = async (eApp) => {
     /**
      * Required function if extended (see App.js call)
@@ -162,7 +167,7 @@ class Custom {
     this.IPCS.main = new MainIPC(this.app);
     this.IPCS.mixer = new MixerIPC(this.app);
     this.IPCS.files = new FilesIPC(this.app);
-    this.IPCS.db = new DbIPC(this.app);
+    this.IPCS.db = new DbIPC(this.app, this.outsideCloseApp);
     this.app.instance.storage = new Storage(
       this.app,
       this.app.settings.reliableOS,
@@ -333,13 +338,17 @@ class Custom {
     Logger.info('Terminating app renderers');
 
     Object.keys(this.app.settings.renderer).forEach((rn) => {
-      this.app.settings.renderer[rn].close();
+      const cRenderer = this.app.settings.renderer[rn];
+      if (typeof cRenderer.close === 'function') cRenderer.close();
+
+      delete this.app.settings.renderer[rn];
     });
   };
 
   doneLoading = (hideMixer = false) => {
     if (this.app.settings.renderer.loading) {
       this.app.settings.renderer.loading.close();
+      delete this.app.settings.renderer.loading;
     }
 
     if (this.app.settings.renderer.main) {

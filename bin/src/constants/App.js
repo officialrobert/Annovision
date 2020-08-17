@@ -14,6 +14,7 @@ const TASK_TYPES = {
   },
   classification: { key: 'classification' },
 };
+const TASK_TYPES_IN_ARR = ['region', 'segmentation', 'classification'];
 const CLASSIFICATION_TASK = { key: 'classification' };
 const SEGMENTATION_TASK = {
   key: 'segmentation',
@@ -36,4 +37,5 @@ module.exports = {
   CLASSIFICATION_TASK,
   SEGMENTATION_TASK,
   REGION_TASK,
+  TASK_TYPES_IN_ARR,
 };

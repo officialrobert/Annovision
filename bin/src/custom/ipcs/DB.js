@@ -2,24 +2,37 @@ const electron = require('electron');
 const path = require('path');
 const ipc = electron.ipcMain;
 const Logger = require('../../lib/Logger').default;
-const { TASK_TYPES } = require('../../constants/App');
+const { TASK_TYPES, TASK_TYPES_IN_ARR } = require('../../constants/App');
 const Tasks = require('../../lib/Tasks').default;
 const fs = require('fs');
 
 class DB {
   app = null;
+  closeApp = null;
 
-  constructor(eApp) {
+  constructor(eApp, closeApp) {
+    /**
+     * Accepts:
+     *  - App's mutable object containing shared data and libraries <object>
+     *  - Acces to function that terminates application whenever an obscure error occurred
+     */
     this.app = eApp;
+    this.closeApp = closeApp;
+
+    /**
+     * Call to IPCs
+     */
     this.set();
   }
 
   set = () => {
     ipc.on('db:addProject', (evt, data = {}) => {
       if (!this.app) {
-        Logger.error(
-          `DbIPC - 'db:addProject' : Required app object is missing`
-        );
+        if (typeof this.closeApp === 'function') {
+          this.closeApp(
+            `DbIPC - 'db:addProject' : Required app object is missing`
+          );
+        }
       } else if (this.app.instance.annoDB) {
         this.app.instance.annoDB.createProject(data);
       }
@@ -38,11 +51,15 @@ class DB {
 
     ipc.handle('db:addDataFile', async (evt, data) => {
       let result = { isSuccess: false, doesExist: false };
+
       if (!this.app) {
-        Logger.error(
-          `DbIPC - 'db:addDataFile' : Required app object is missing`
-        );
-        result.error = `DbIPC - 'db:addDataFile' : Required app object is missing`;
+        if (typeof this.closeApp === 'function') {
+          this.closeApp(
+            `DbIPC - 'db:addDataFile' : Required app object is missing`
+          );
+
+          return result;
+        }
       } else if (this.app.instance.annoDB) {
         try {
           let res = await this.app.instance.annoDB.addDataToProject(data);
@@ -71,10 +88,13 @@ class DB {
       async (evt, { min, max, projectName, projectId }) => {
         let result = { isSuccess: false, data: [] };
         if (!this.app) {
-          Logger.error(
-            `DbIPC - 'db:fetchProjectFiles' : Required app object is missing`
-          );
           result.error = `DbIPC - 'db:fetchProjectFiles' : Required app object is missing`;
+          if (typeof this.closeApp === 'function') {
+            this.closeApp(
+              `DbIPC - 'db:fetchProjectFiles' : Required app object is missing`
+            );
+          }
+          return result;
         } else if (this.app.instance.annoDB) {
           try {
             let res = await this.app.instance.annoDB.getFilesFromProject({
@@ -107,10 +127,14 @@ class DB {
     ipc.handle('db:removeAllFiles', async (evt, { projectId, projectName }) => {
       let result = { isSuccess: false };
       if (!this.app) {
-        Logger.error(
-          `DbIPC - 'db:removeAllFiles' : Required app object is missing`
-        );
         result.error = `DbIPC - 'db:removeAllFiles' : Required app object is missing`;
+        if (typeof this.closeApp === 'function') {
+          this.closeApp(
+            `DbIPC - 'db:removeAllFiles' : Required app object is missing`
+          );
+        }
+
+        return result;
       } else if (this.app.instance.annoDB) {
         try {
           let res = await this.app.instance.annoDB.removeAllFilesFromProject({
@@ -142,10 +166,15 @@ class DB {
       async (evt, { projectId, projectName, file, numFiles }) => {
         let result = { isSuccess: false };
         if (!this.app) {
-          Logger.error(
-            `DbIPC - 'db:removeDataFile' : Required app object is missing`
-          );
           result.error = `DbIPC - 'db:removeDataFile' : Required app object is missing`;
+
+          if (typeof this.closeApp === 'function') {
+            this.closeApp(
+              `DbIPC - 'db:removeDataFile' : Required app object is missing`
+            );
+          }
+
+          return result;
         } else if (this.app.instance.annoDB) {
           try {
             let res = await this.app.instance.annoDB.removeFileFromProject(
@@ -183,16 +212,22 @@ class DB {
 
       let result = { isSuccess: false };
       if (!this.app) {
-        Logger.error(
-          `DbIPC - 'db:checkFileOutput' : Required app object is missing`
-        );
+        result.error = `DbIPC - 'db:checkFileOutput' : Required app object is missing`;
+        if (typeof this.closeApp === 'function') {
+          this.closeApp(
+            `DbIPC - 'db:checkFileOutput' : Required app object is missing`
+          );
+        }
+
+        return result;
       } else if (this.app.settings.dirs.output) {
         try {
           const { output } = this.app.settings.dirs;
-          const tasksKeys = Object.keys(TASK_TYPES);
 
-          for (let index = 0; index < tasksKeys.length; index++) {
-            const ctask = TASK_TYPES[tasksKeys[index]].key.toLowerCase();
+          for (let index = 0; index < TASK_TYPES_IN_ARR.length; index++) {
+            const ctask = TASK_TYPES[
+              TASK_TYPES_IN_ARR[index]
+            ].key.toLowerCase();
             const cpath = path.join(
               `${output}`,
               project,
@@ -226,10 +261,14 @@ class DB {
       async (evt, { projectId, task, setup, projectName }) => {
         let result = { isSuccess: false };
         if (!this.app) {
-          Logger.error(
-            `DbIPC - 'db:setupTask' : Required app object is missing`
-          );
           result.error = `DbIPC - 'db:setupTask' : Required app object is missing`;
+          if (typeof this.closeApp === 'function') {
+            this.closeApp(
+              `DbIPC - 'db:setupTask' : Required app object is missing`
+            );
+          }
+
+          return result;
         } else if (this.app.instance.annoDB) {
           try {
             const wrtask = await this.app.instance.annoDB.updateTaskSetup(
@@ -264,10 +303,14 @@ class DB {
         let result = { isSuccess: false };
 
         if (!this.app) {
-          Logger.error(
-            `DbIPC - 'db:setFileAnnotation' : Required app object is missing`
-          );
           result.error = `DbIPC - 'db:setFileAnnotation' : Required app object is missing`;
+          if (typeof this.closeApp === 'function') {
+            this.closeApp(
+              `DbIPC - 'db:setFileAnnotation' : Required app object is missing`
+            );
+          }
+
+          return result;
         } else if (this.app.settings.dirs) {
           const { output } = this.app.settings.dirs;
 
@@ -297,10 +340,14 @@ class DB {
       let result = { isSuccess: false, data: {} };
 
       if (!this.app) {
-        Logger.error(
-          `DbIPC - 'db:getFileAnnotation' : Required app object is missing`
-        );
         result.error = `DbIPC - 'db:getFileAnnotation' : Required app object is missing`;
+        if (typeof this.closeApp === 'function') {
+          this.closeApp(
+            `DbIPC - 'db:getFileAnnotation' : Required app object is missing`
+          );
+        }
+
+        return result;
       } else if (this.app.settings.dirs) {
         const { output } = this.app.settings.dirs;
         const filePath = path.join(

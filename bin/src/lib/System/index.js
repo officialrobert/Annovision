@@ -10,10 +10,22 @@ class System {
   }
 
   setVerbose = (flag) => {
+    /**
+     * You can set to log all steps in execution
+     * Call this function on app's main entry
+     */
     this.verbose = flag;
   };
 
   doSpawn = (exec, args = []) => {
+    /**
+     * Spawns an executable at $exec with arguments $args
+     * Spawn setup:
+     *  - detached
+     *  - stdio pipe
+     *  - rejects when error occured in fn
+     *  - resolve on success but err bool is available to indicate if error had occured in exec
+     */
     return new Promise(async (resolve, reject) => {
       if (this.verbose) Logger.info(`System lib spawn: ${exec} ${args}`);
 
