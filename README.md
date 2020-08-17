@@ -17,7 +17,7 @@ This software haven't been tested on other distributed OS, except for `Windows 1
 ## Running from source
 
 Clone this repository and install needed modules as provided under package.json. Using `yarn` package manager is highly recommended.
-After cloning repository extract embeddable python binaries inside **/pycorwin**, get the tested binaries via this [**link**](https://drive.google.com/file/d/1qY0X96uDVDdLVW86__BdJ1483WhD3MD4/view?usp=sharing)
+After cloning repository extract embeddable python binaries inside **/pycorewin**, get the tested binaries via this [**link**](https://drive.google.com/file/d/1qY0X96uDVDdLVW86__BdJ1483WhD3MD4/view?usp=sharing)
 
 ## Documentation
 
